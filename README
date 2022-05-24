@@ -1,8 +1,0 @@
-Usage:
-./scripts/getData.sh <input file name without extension> <output file name without extension>
-
-e.g., 
-./scripts/getData.sh Admissions_for_Jan_2020_asthma_pul_and_gen_peds Admission2020
-
-Note: 
-Input file should include address variables: pat_addr_1, pat_city, pat_state, pat_zip.
