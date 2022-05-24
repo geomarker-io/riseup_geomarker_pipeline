@@ -4,9 +4,9 @@ output: html_document
 date: '05-24-2022'
 ---
 
-The purpose of the shell scripts is to build a pipeline for geocoding addresses and adding DEGAUSS variables based on geocoded addresses.
+The purpose of the shell scripts is to build a pipeline for geocoding addresses and adding DeGAUSS images based on geocoded addresses.
 
-Containers used: geocoder, roads, aadt, greenspace, dep_index, drivetime.
+Images used: geocoder, roads, aadt, greenspace, dep_index, drivetime.
 
 ### Usage
 
