@@ -1,0 +1,4 @@
+./scripts/getData.sh <input file name without extension> <output file name without extension>
+
+e.g., 
+./scripts/getData.sh Admissions_for_Jan_2020_asthma_pul_and_gen_peds Admission2020
