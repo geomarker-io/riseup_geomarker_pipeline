@@ -14,7 +14,7 @@ hamparcels <- st_read(
   dsn = "raw-data/HamParcels.gdb",
   layer = "HamMergedParcelsWCondoAtts"
 )
-saveRDS(hamparcels, file="data/hamParcels.rds")
+saveRDS(hamparcels, file="data/hamilton_parcels_062022.rds")
 
 # Simple feature collection with 353747 features and 96 fields
 # Geometry type: GEOMETRY
@@ -34,7 +34,7 @@ ensure_multipolygons <- function(X) {
 }
 
 hamparcels_polygons <- ensure_multipolygons(hamparcels)
-saveRDS(hamparcels_polygons, file="data/hamParcels_polygons.rds")
+saveRDS(hamparcels_polygons, file="data/hamilton_parcels_polygons_062022.rds")
 
 # plot polygon
 pdf("Rplot_hamilton_parcels_06072022.pdf")
@@ -90,7 +90,7 @@ hamparcels_t <- as_tibble(st_drop_geometry(hamparcels)) %>%
 # Descriptive statistics
 Hmisc::describe(hamparcels_t)
 
-saveRDS(hamparcels_t, file="data/hamilton_parcels_tibble.rds")
+saveRDS(hamparcels_t, file="data/hamilton_parcels_tibble_062022.rds")
 
 
 
