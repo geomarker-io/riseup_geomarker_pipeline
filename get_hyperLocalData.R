@@ -10,7 +10,6 @@ download.file(url="http://cagis.org/Opendata/Auditor/HamParcels.gdb.zip",
 unzip("raw-data/HamParcels.gdb.zip", exdir = 'raw-data')
 unlink("raw-data/HamParcels.gdb.zip")
 
-
 hamparcels <- st_read(
   dsn = "raw-data/HamParcels.gdb",
   layer = "HamMergedParcelsWCondoAtts"
