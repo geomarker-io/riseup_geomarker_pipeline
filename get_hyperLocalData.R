@@ -1,53 +1,22 @@
 library(sf) # Linking to GEOS 3.9.1, GDAL 3.2.1, PROJ 7.2.1;
-library(tidyverse) # tidyverse 1.3.1
-library(gdalUtilities)
+library(dplyr)
 
-download.file(
-  url = "http://cagis.org/Opendata/Auditor/HamParcels.gdb.zip",
-  destfile = "raw-data/HamParcels.gdb.zip",
-  mode = "wb"
-)
-
-unzip("raw-data/HamParcels.gdb.zip", exdir = "raw-data")
-unlink("raw-data/HamParcels.gdb.zip")
-
-hamparcels <- st_read(
-  dsn = "raw-data/HamParcels.gdb",
-  layer = "HamMergedParcelsWCondoAtts"
-)
-saveRDS(hamparcels, file = "data/hamilton_parcels_062022.rds")
-
-# Simple feature collection with 353747 features and 96 fields
-# Geometry type: GEOMETRY
-# Dimension:     XYZ
-# Bounding box:  xmin: 1310122 ymin: 377822.3 xmax: 1471220 ymax: 484976
-# z_range:       zmin: 0 zmax: 0
-# Projected CRS: NAD83 / Ohio South (ftUS)
-
-# Multiple surface to polygons
-ensure_multipolygons <- function(X) {
-  tmp1 <- tempfile(fileext = ".gpkg")
-  tmp2 <- tempfile(fileext = ".gpkg")
-  st_write(X, tmp1)
-  ogr2ogr(tmp1, tmp2, f = "GPKG", nlt = "MULTIPOLYGON")
-  Y <- st_read(tmp2)
-  st_sf(st_drop_geometry(X), geom = st_geometry(Y))
+if (!file.exists("data-raw/HamParcels.gdb")) {
+  tmp <- tempfile(fileext = ".zip")
+  download.file(glue::glue("http://cagis.org/Opendata/Auditor/HamParcels.gdb.zip"), tmp)
+  unzip(tmp, exdir = "data-raw")
 }
 
-hamparcels_polygons <- ensure_multipolygons(hamparcels)
-saveRDS(hamparcels_polygons, file = "data/hamilton_parcels_polygons_062022.rds")
+d <-
+  st_read(dsn = "data-raw/HamParcels.gdb", layer = "HamMergedParcelsWCondoAtts") |>
+  st_zm(drop = TRUE, what = "ZM")
 
-# plot polygon
-pdf("Rplot_hamilton_parcels_06072022.pdf")
-
-plot(st_geometry(hamparcels_polygons))
-plot(st_geometry(st_centroid(hamparcels_polygons)), pch = 20, col = rgb(red = 0, green = 0, blue = 0, alpha = 0.3))
-
-dev.off()
-
-# convert to a tibble
-hamparcels_t <- as_tibble(st_drop_geometry(hamparcels)) %>%
-  select(
+d_data <-
+  d |>
+  st_cast("MULTIPOLYGON") |>
+  st_drop_geometry() |>
+  as_tibble() |>
+  transmute(
     parcel_id = PROPTYID,
     owner_lastname = OWNER6,
     owner_name_part1 = OWNNM1,
@@ -90,7 +59,26 @@ hamparcels_t <- as_tibble(st_drop_geometry(hamparcels)) %>%
     percent_own = PERCENTOWN
   )
 
-# Descriptive statistics
-Hmisc::describe(hamparcels_t)
+d_geom <-
+  d |>
+  st_as_sfc() |>
+  st_cast("MULTIPOLYGON") |>
+  st_as_sf()
 
-saveRDS(hamparcels_t, file = "data/hamilton_parcels_tibble_062022.rds")
+d <-
+  bind_cols(d_data, d_geom) |>
+  st_as_sf()
+
+## mapview::mapviewOptions(fgb = FALSE)
+## slice_sample(d, n = 1000) |>
+##   mapview::mapview()
+
+# save RDS file
+saveRDS(d, "hamilton_parcels.rds")
+
+# save gpkg file
+st_write(d, "hamilton_parcels.gpkg")
+
+# save CSV file
+readr::write_csv(d, "hamilton_parcels.csv")
+

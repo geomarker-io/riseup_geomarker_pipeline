@@ -1,0 +1,5 @@
+*.gdb
+data-raw/HamParcels.gdb*
+hamilton_parcels.csv
+hamilton_parcels.gpkg
+hamilton_parcels.rds
