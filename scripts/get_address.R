@@ -7,7 +7,7 @@ output <- args[2]
 
 library(tidyverse)
 
-addrfile <- read_csv(paste0("raw-data/", input, ".csv"))
+addrfile <- read_csv(paste0("./raw-data/", input, ".csv"))
 
 addrfile <- addrfile %>%
   mutate(pat_zip_clean = str_split(pat_zip, "-", simplify = TRUE)[, 1]) %>%
