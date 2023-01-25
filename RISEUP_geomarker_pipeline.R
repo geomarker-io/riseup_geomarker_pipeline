@@ -1,3 +1,9 @@
+#===============
+# updates
+#===============
+# 1-17-2023
+# using 2019 acs data from hh_acs and dep index instead of matching admission year, so that dep index is consistent at tract level.
+# manually download and add nlcd data
 
 #remotes::install_github("degauss-org/dht")
 library(tidyverse)
@@ -6,6 +12,7 @@ library(dht)
 library(data.table)
 #devtools::install_github("geomarker-io/CODECtools")
 library(CODECtools)
+#remotes::install_github("geomarker-io/s3")
 
 #input = "Admissions_for_Jan_2022_asthma_pul_and_gen_peds.csv"
 input = "Hospital Admissions.csv"
@@ -20,22 +27,15 @@ data.in <- readr::read_csv(paste0("raw-data/", input), na = c("NA", "-", "NULL")
   mutate(pat_zip_clean = str_split(PAT_ZIP, "-", simplify=TRUE)[,1]) |>  
   unite("address", c(PAT_ADDR_1, PAT_CITY, PAT_STATE, pat_zip_clean), remove = FALSE, sep=" ") 
 
+# data cleaning
+# remove a duplicated record (based on PAT_ENC_CSN_ID) from current dataset
+data.in <- data.in |> 
+  filter(!(PAT_ENC_CSN_ID == "549864470" & MAPPED_RACE == "Unknown")) # 135870
+
 # cache the following functions locally to disk
 fc <- memoise::cache_filesystem(fs::path(fs::path_wd(), "localcache"))
 add_parcel_id <- memoise::memoise(add_parcel_id, omit_args = c("quiet"), cache = fc)
 degauss_run <- memoise::memoise(degauss_run, omit_args = c("quiet"), cache = fc)
-
-# Downloaded Hamilton parcels directly from release
-# readr::read_csv("https://github.com/geomarker-io/hamilton_parcels/releases/download/v1.1.0/hamilton_parcels.csv")
-# reported error
-
-hamilton_parcels <- read_csv("data/hamilton_parcels.csv")
-
-d <- add_parcel_id(data.in) |>
-  tidyr::unnest(parcel_id, keep_empty = TRUE) |>
-  dplyr::left_join(hamilton_parcels) 
-
-dim(d)
 
 #---------------------------------------------------------
 # geocoding
@@ -43,20 +43,25 @@ dim(d)
 start_time <- Sys.time()
 
 # postal
-d <- d |> 
-  degauss_run("postal", "0.1.3", quiet = FALSE) 
+d <- data.in |> 
+  degauss_run("postal", "0.1.4", quiet = FALSE) 
+dim(d)
 
 # geocoder
 d <- d |> 
-  degauss_run("geocoder", "3.2.1", quiet = FALSE) 
+  degauss_run("geocoder", "3.3.0", quiet = FALSE) |>  # duplicated records: n=136949
+  distinct(.keep_all = TRUE)   # keep distinct rows: n = 135871
+dim(d)
 
 # 2010 Census Tract Geographies
 d <- d |> 
   degauss_run("census_block_group", "0.6.0", argument = "2010", quiet = FALSE)
+dim(d)
 
 # 2020 Census Tract Geographies
 d <- d |> 
   degauss_run("census_block_group", "0.6.0", argument = "2020", quiet = FALSE)
+dim(d)
 
 # dep-index: merging from tract indices
 # d <- d |> 
@@ -65,43 +70,177 @@ d <- d |>
 # roads
 d <- d |> 
   degauss_run("roads", "0.2.1", quiet = FALSE)
+dim(d)
 
 # aadt
 d <- d |> 
   degauss_run("aadt", "0.2.0", quiet = FALSE) |> 
   select(-.row)
+dim(d)
 
 # greenspace
 d <- d |> 
   degauss_run("greenspace", "0.3.0", quiet = FALSE)
+dim(d)
 
 # drivetime
 d <- d |> 
-  degauss_run("drivetime", "1.1.0", argument = "cchmc", quiet = FALSE)
+  degauss_run("drivetime", "1.2.0", argument = "cchmc", quiet = FALSE)
+dim(d)
 
 end_time <- Sys.time()
 
-end_time - start_time # Time difference of 7.365218 hours
+end_time - start_time
 
+#-----------
 # nlcd
-d <- d |> 
-  degauss_run("nlcd", "0.2.1", quiet = FALSE) |> 
-  filter(year == 2016 | is.na(year)) |> 
-  select(-year)
+#-----------
 
-# census tract id for merging purpose
-d <- d |>
-  mutate(year_orig = year(HOSP_ADMSN_TIME)) |>  
-  mutate(year = replace(year_orig,            # for identifying ACS data year
-                        year_orig > 2020, 
-                        2020)) |>
-  mutate(census_tract_id_acs = ifelse(year < 2020,   
-                                  census_tract_id_2010,
-                                  census_tract_id_2020)) |> 
-  select(-year_orig)
+# make buffers around points
+d.point <- d |> 
+  select(PAT_ENC_CSN_ID , lat, lon) %>% 
+  filter(complete.cases(.)) |>  # keep geocoded ones
+  distinct(.keep_all = TRUE)  # remove duplicated records while adding parcel ID
+
+d.point <-
+  d.point %>%
+  dplyr::select(PAT_ENC_CSN_ID, lat, lon) %>%
+  stats::na.omit() %>%
+  tidyr::nest(PAT_ENC_CSN_ID = c(PAT_ENC_CSN_ID)) %>%
+  sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
+
+# project to 5072 for buffering in meters
+d.buffered <- d.point %>%
+  sf::st_transform(5072) %>%
+  sf::st_buffer(dist = 400)
+
+d.buffered <- terra::vect(d.buffered)
+
+# nlcd_legend
+nlcd_legend <-
+  tibble::tribble(
+    ~value, ~landcover_class, ~landcover, ~green,
+    11, "water", "water", FALSE,
+    12, "water", "ice/snow", FALSE,
+    21, "developed", "developed open", TRUE,
+    22, "developed", "developed low intensity", TRUE,
+    23, "developed", "developed medium intensity", FALSE,
+    24, "developed", "developed high intensity", FALSE,
+    31, "barren", "rock/sand/clay", FALSE,
+    41, "forest", "deciduous forest", TRUE,
+    42, "forest", "evergreen forest", TRUE,
+    43, "forest", "mixed forest", TRUE,
+    51, "shrubland", "dwarf scrub", TRUE,
+    52, "shrubland", "shrub/scrub", TRUE,
+    71, "herbaceous", "grassland", TRUE,
+    72, "herbaceous", "sedge", TRUE,
+    73, "herbaceous", "lichens", TRUE,
+    74, "herbaceous", "moss", TRUE,
+    81, "cultivated", "pasture/hay", TRUE,
+    82, "cultivated", "cultivated crops", TRUE,
+    90, "wetlands", "woody wetlands", TRUE,
+    95, "wetlands", "emergent herbaceous wetlands", TRUE
+  )
+
+# extract info
+# nlcd
+if (file.exists("rasters/nlcd_hv_2019.tif")){
+  
+  nlcd_hv_2019 <- terra::rast("rasters/nlcd_hv_2019.tif")
+  
+} else {
+  
+  hv <- cincy::county_hlthv_2010 |> 
+    st_union()
+
+  nlcd_tif <- s3::s3_get("s3://geomarker/nlcd_cog/nlcd_landcover_2019.tif")
+  nlcd <- terra::rast(nlcd_tif)
+  nlcd_hv_2019 <- terra::crop(nlcd, hv)
+  terra::writeRaster(nlcd_hv_2019, "rasters/nlcd_hv_2019.tif")
+  fs::dir_delete("s3_downloads")
+}
+  
+pct_green <- 
+  terra::extract(nlcd_hv_2019, d.buffered) |>
+  rename(value = Layer_1) |>
+  left_join(nlcd_legend, by = "value") |>
+  group_by(ID) |>
+  summarize(pct_green_2019 = round(sum(green) / n() * 100)) |>
+  select(-ID)
+
+d.pct_green <- bind_cols(d.point, pct_green) |> 
+  unnest(PAT_ENC_CSN_ID) |> 
+  st_drop_geometry()
+
+# impervious
+if (file.exists("rasters/impervious_hv_2019.tif")){
+  
+  impervious_hv_2019 <- terra::rast("rasters/impervious_hv_2019.tif")
+  
+} else {
+  
+  hv <- cincy::county_hlthv_2010 |> 
+    st_union()
+  
+  impervious_tif <- s3::s3_get("s3://geomarker/nlcd_cog/nlcd_impervious_2019.tif")
+  impervious <- terra::rast(impervious_tif)
+  impervious_hv_2019 <- terra::crop(impervious, hv)
+  terra::writeRaster(impervious_hv_2019, "rasters/impervious_hv_2019.tif")
+  fs::dir_delete("s3_downloads")
+}
+
+pct_impervious <- 
+  terra::extract(impervious_hv_2019, 
+                 d.buffered, 
+                 fun = "mean") |>
+  rename(value = Layer_1) |>
+  summarize(pct_impervious_2019 = round(value))
+
+d.pct_impervious <- bind_cols(d.point, pct_impervious) |> 
+  unnest(PAT_ENC_CSN_ID) |> 
+  st_drop_geometry()
+
+# tree canopy
+if (file.exists("rasters/treecanopy_hv_2016.tif")){
+  
+  treecanopy_hv_2016 <- terra::rast("rasters/treecanopy_hv_2016.tif")
+  
+} else {
+  
+  hv <- cincy::county_hlthv_2010 |> 
+    st_union()
+  
+  tree_tif <- s3::s3_get("s3://geomarker/nlcd_cog/nlcd_treecanopy_2016.tif")
+  treecanopy <- terra::rast(tree_tif)
+  treecanopy_hv_2016 <- terra::crop(treecanopy, hv)
+  terra::writeRaster(treecanopy_hv_2016, "rasters/treecanopy_hv_2016.tif")
+  fs::dir_delete("s3_downloads")
+}
+
+pct_treecanopy <- 
+  terra::extract(treecanopy_hv_2016, 
+                 d.buffered, 
+                 fun = "mean") |>
+  rename(value = Layer_1) |>
+  summarize(pct_treecanopy_2016 = round(value))
+
+d.pct_treecanopy <- bind_cols(d.point, pct_treecanopy) |> 
+  unnest(PAT_ENC_CSN_ID) |> 
+  st_drop_geometry()
+
+# merge
+d.nlcd <- d.pct_green |> 
+  left_join(d.pct_impervious, by = "PAT_ENC_CSN_ID") |> 
+  left_join(d.pct_treecanopy, by = "PAT_ENC_CSN_ID")
+
+d <- left_join(d, d.nlcd, by = "PAT_ENC_CSN_ID")
+dim(d)
+
+# save 
+saveRDS(d, file = sprintf("data/HospitalAdmissions_degauss_%s.rds", Sys.Date()))
+write_csv(d, file = sprintf("data/HospitalAdmissions_degauss_%s.csv", Sys.Date()))
 
 
-saveRDS(d, "data/HospitalAdmissions_degauss.rds")
 
 #---------------------------------------------------------
 # tract_indices (2010 census tract id)
@@ -109,23 +248,73 @@ saveRDS(d, "data/HospitalAdmissions_degauss.rds")
 tract_indices <- readr::read_csv("https://github.com/geomarker-io/tract_indices/releases/download/v0.3.0/tract_indices.csv")
 
 d <- d |> 
-  left_join(tract_indices, by=c("census_tract_id_2010" = "census_tract_id"))
-
-saveRDS(d, "data/HospitalAdmissions_degauss_ti.rds")
+  left_join(tract_indices, by=c("census_tract_id_2010" = "census_tract_id")) |> 
+  rename(dep_index_2018 = dep_index)
+dim(d)
 
 #---------------------------------------------------------
 # historical acs data (2010 or 2020 census tract id)
 #---------------------------------------------------------
-hh_acs <- readr::read_csv("https://codec-data.s3.amazonaws.com/hh_acs_measures/hh_acs_measures.csv")
+hh_acs_2019 <- readr::read_csv("https://codec-data.s3.amazonaws.com/hh_acs_measures/hh_acs_measures.csv") |> 
+  filter(year == 2019) |> 
+  select(-year, -census_tract_vintage) |> 
+  rename_all(paste0, "_2019") |> 
+  rename(census_tract_id = census_tract_id_2019)
 
 d <- d |> 
-  left_join(hh_acs, by=c("census_tract_id_acs"="census_tract_id", "year")) |> 
-  select(-census_tract_id_acs) # clean up
+  left_join(hh_acs_2019, by=c("census_tract_id_2010"="census_tract_id")) 
+dim(d)
+
+#-------------------------------------------------------------
+# 2019 dep index
+# Note the 2019 dep index was calculated using 2012-2020 data
+#-------------------------------------------------------------
+di <- readRDS("U:/Investigator Folders/DBE/Cole Brokamp/GRAPPH/harmonized_historical_ACS_data/harmonized_historical_ACS_data/data/dep_index_2012-2020.rds") |> 
+  filter(year == 2019) |> 
+  select(dep_index_2019 = dep_index,
+         census_tract_id_2010)
+
+d <- d |> 
+  left_join(di, by = "census_tract_id_2010")
+dim(d)
+
+#---------------------------------------------------------
+# AGS crime risk
+# Hamilton county tracts only
+# 2010 census tract vintage
+#---------------------------------------------------------
+ags_crime <- read_csv("raw-data/AGS_crime_risk/ags_crime_risk.csv") |> 
+  rename_all(~ paste0("ags_", .x)) |> 
+  rename(census_tract_id = ags_census_tract_id) |> 
+  mutate(census_tract_id = as.character(census_tract_id))
+
+d <- d |> 
+  left_join(ags_crime, by=c("census_tract_id_2010"="census_tract_id"))
+dim(d)
 
 # save
-saveRDS(d, "data/Hospital Admissions_merged_degauss_ti_acs.rds")
+saveRDS(d, file = sprintf("data/HospitalAdmissions_degauss_ti_acs_ags_%s.rds", Sys.Date()))
+write_csv(d, file = sprintf("data/HospitalAdmissions_degauss_ti_acs_ags_%s.csv", Sys.Date()))
 
 
+#--------------------------------------------------------
+# Add parcel ID
+# will cause duplicated records with unique parcel IDs
+#--------------------------------------------------------
+# Downloaded Hamilton parcels directly from release
+# readr::read_csv("https://github.com/geomarker-io/hamilton_parcels/releases/download/v1.1.0/hamilton_parcels.csv")
+# reported error
+
+hamilton_parcels <- read_csv("data/hamilton_parcels.csv")
+
+d <- add_parcel_id(d) |>
+  tidyr::unnest(parcel_id, keep_empty = TRUE) |>
+  dplyr::left_join(hamilton_parcels) 
+dim(d)
+
+# save
+saveRDS(d, file = sprintf("data/HospitalAdmissions_degauss_ti_acs_ags_parcel_%s.rds", Sys.Date()))
+write_csv(d, file = sprintf("data/HospitalAdmissions_degauss_ti_acs_ags_parcel_%s.csv", Sys.Date()))
 
 
 
