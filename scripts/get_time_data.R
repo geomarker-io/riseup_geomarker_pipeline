@@ -21,10 +21,6 @@ aqi <- purrr::map_dfr(file, ~read_csv(.x)) |>
   select(date = Date,
          aqi = AQI)
 
-fs::dir_delete("tmp")
-
-saveRDS(aqi, "time-data/aqi.rds")
-
 # weather
 
 download_weather <- function(var, year) {
@@ -46,8 +42,6 @@ plan <- expand_grid(var, year)
 
 weather <- purrr::map2_dfr(plan$var, plan$year, download_weather)
 
-fs::dir_delete("tmp")
-
 weather <- weather |>
   pivot_wider(names_from = name,
               values_from = value) |>
@@ -56,11 +50,7 @@ weather <- weather |>
          outdoor_temp = `Outdoor Temperature`,
          relative_humidity = `Relative Humidity`)
 
-saveRDS(weather, "time-data/weather.rds")
-
 # pollen / mold
-
-fs::dir_create("tmp")
 
 download.file("https://southwestohioair.org/DocumentCenter/View/447",
               destfile = "tmp/pollen_mold_2021.xlsx")
@@ -105,12 +95,8 @@ d_pollen_mold <- left_join(d_pollen_calculations,
                            by = "date") |>
   mutate(date = as.Date(date))
 
-fs::dir_delete("tmp")
-saveRDS(d_pollen_mold, "time-data/pollen_mold.rds")
-
 # shotspotter
 library(sf)
-fs::dir_create("tmp")
 
 download.file("https://github.com/geomarker-io/shotspotter/raw/main/shotspotter_street_ranges.rds",
               destfile = "tmp/shotspotter_street_ranges.rds")
@@ -160,9 +146,6 @@ d_daily <- left_join(all_days, d_daily, by = c("neighborhood", "date")) |>
 #   group_by(neighborhood, week) |>
 #   summarize(n = sum(n))
 
-fs::dir_delete("tmp")
-saveRDS(d_daily, "time-data/shotspotter.rds")
-
 # combine
 
 daily <-
@@ -170,5 +153,5 @@ daily <-
   full_join(d_pollen_mold, by = "date") |>
   full_join(d_daily, by = "date")
 
-saveRDS(daily, "time-data/daily.rds")
+saveRDS(daily, "daily_data.rds")
 
