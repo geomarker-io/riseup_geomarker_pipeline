@@ -1,4 +1,10 @@
 
+.cran_packages <- c("tidycensus", "lubridate")
+.inst <- .cran_packages %in% installed.packages()
+if(any(!.inst)) {
+  install.packages(.cran_packages[!.inst], repos = "http://cran.us.r-project.org")
+}
+
 library(tidyverse)
 library(lubridate)
 

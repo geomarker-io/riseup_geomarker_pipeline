@@ -1,6 +1,13 @@
 
+.cran_packages <- c("dht", "CODECtools")
+.inst <- .cran_packages %in% installed.packages()
+if(any(!.inst)) {
+  install.packages(.cran_packages[!.inst], repos = "http://cran.us.r-project.org")
+}
+
 library(tidyverse)
 library(dht)
+library(CODECtools)
 
 d <- readRDS("data/addresses.rds")
 
@@ -14,3 +21,6 @@ d <- d |>
   distinct(.keep_all = TRUE)   # keep distinct rows
 
 saveRDS(d, "data/addresses_geocoded.rds")
+
+
+              

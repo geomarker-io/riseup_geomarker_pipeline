@@ -1,6 +1,7 @@
 
 library(tidyverse)
 library(dht)
+library(CODECtools)
 
 d <- readRDS("data/addresses_geocoded.rds")
 
@@ -21,4 +22,163 @@ d <- d |>
 d <- d |> 
   degauss_run("drivetime", "1.2.0", argument = "cchmc", quiet = FALSE)
 
+# correct variable type
+d <- d |> 
+  mutate(matched_zip = as.numeric(matched_zip))
+
+# add column attributes
+d <- d |>
+  add_col_attrs(cleaned_address, 
+                title = 'cleaned address', 
+                description = 'cleaned address'
+                ) |>
+  add_col_attrs(parsed_address, 
+                title = 'parsed address', 
+                description = 'parsed address'
+                ) |>
+  add_col_attrs(parsed.house_number, 
+                title = 'parsed house number', 
+                description = 'parsed house number'
+                ) |>
+  add_col_attrs(parsed.road, 
+                title = 'parsed road', 
+                description = 'parsed road'
+                ) |>
+  add_col_attrs(parsed.city, 
+                title = 'parsed city', 
+                description = 'parsed city'
+                ) |>
+  add_col_attrs(parsed.state, 
+                title = 'parsed state', 
+                description = 'parsed state'
+                ) |>
+  add_col_attrs(parsed.postcode, 
+                title = 'parsed postcode', 
+                description = 'parsed postcode'
+                ) |>
+  add_col_attrs(parsed.unit, 
+                title = 'parsed unit', 
+                description = 'parsed unit'
+                ) |>
+  add_col_attrs(parsed.state_district, 
+                title = 'parsed.state district', 
+                description = 'parsed state district'
+                ) |>
+  add_col_attrs(parsed.level, 
+                title = 'parsed level', 
+                description = 'parsed level'
+                ) |>
+  add_col_attrs(parsed.suburb, 
+                title = 'parsed suburb', 
+                description = 'parsed suburb'
+                ) |>
+  add_col_attrs(parsed.po_box, 
+                title = 'parsed po box', 
+                description = 'parsed po box'
+                ) |>
+  add_col_attrs(parsed.house, 
+                title = 'parsed house', 
+                description = 'parsed house'
+                ) |>
+  add_col_attrs(parsed.postcode_five, 
+                title = 'parsed postcode', 
+                description = 'parsed five digit postcode'
+                ) |>
+  add_col_attrs(matched_street, 
+                title = 'matched street', 
+                description = 'street the geocoder matched with the input address'
+                ) |>
+  add_col_attrs(matched_zip, 
+                title = 'matched zip', 
+                description = 'ZIP code the geocoder matched with the input address'
+                ) |>
+  add_col_attrs(matched_city, 
+                title = 'matched city', 
+                description = 'city the geocoder matched with the input address'
+                ) |>
+  add_col_attrs(matched_state, 
+                title = 'matched state', 
+                description = 'state the geocoder matched with the input address'
+                ) |>
+  add_col_attrs(lat, 
+                title = 'lat', 
+                description = 'geocoded latitude coordinate'
+                ) |>
+  add_col_attrs(lon, 
+                title = 'lon', 
+                description = 'geocoded longitude coordinate'
+                ) |>
+  add_col_attrs(score, 
+                title = 'score', 
+                description = 'percentage of text match between the given address and the geocoded result, expressed as a number between 0 and 1. A higher score indicates a closer match. Note that each score is relative within a precision method.'
+                 ) |>
+  add_col_attrs(precision, 
+                title = 'precision', 
+                description = 'method/precision of the geocode (range: interpolated based on address ranges from street segments, street: center of the matched street, intersection: intersection of two streets, zip: centroid of the matched zip code, city: centroid of the matched city)'
+                ) |>
+  add_col_attrs(geocode_result, 
+                title = 'geocode result', 
+                description = 'character string summarizing the geocoding result (geocoded: the address was geocoded with a precision of either range or street and a score of 0.5 or greater; imprecise_geocode: the address was geocoded, but results were suppressed because the precision was intersection, zip, or city and/or the score was less than 0.5; po_box: the address was not geocoded because it is a PO Box; cincy_inst_foster_addr: the address was not geocoded because it is a known institutional address, not a residential address; non_address_text: the address was not geocoded because it was blank or listed as “foreign”, “verify”, or “unknown”)'
+                ) |> 
+  add_col_attrs(dist_to_1100, 
+                title = 'dist to 1100', 
+                description = 'distance (meters) to the nearest S1100 road'
+                ) |>
+  add_col_attrs(dist_to_1200, 
+                title = 'dist to 1200', 
+                description = 'distance (meters) to the nearest S1200 road'
+                ) |>
+  add_col_attrs(length_1100, 
+                title = 'length 1100', 
+                description = 'length (meters) of S1100 roads within a 400 m buffer'
+                ) |>
+  add_col_attrs(length_1200, 
+                title = 'length 1200', 
+                description = 'length (meters) of S1200 roads within a 400 m buffer'
+                ) |>
+  add_col_attrs(length_stop_go, 
+                title = 'length stop go', 
+                description = 'total length of arterial roads (meters)'
+                ) |>
+  add_col_attrs(length_moving, 
+                title = 'length moving', 
+                description = 'total length of interstates, expressways, and freeways (meters)'
+                ) |>
+  add_col_attrs(vehicle_meters_stop_go, 
+                title = 'vehicle meters stop go', 
+                description = 'average daily number of vehicles multiplied by the length of arterial roads (vehicle-meters)'
+                ) |>
+  add_col_attrs(vehicle_meters_moving, 
+                title = 'vehicle meters moving', 
+                description = 'average daily number of vehicles multiplied by the length of interstates, expressways, and freeways (vehicle-meters)'
+                ) |>
+  add_col_attrs(truck_meters_stop_go, 
+                title = 'truck meters stop go', 
+                description = 'average daily number of trucks multiplied by the length of arterial roads (truck-meters)'
+                ) |>
+  add_col_attrs(truck_meters_moving, 
+                title = 'truck meters moving', 
+                description = 'average daily number of trucks multiplied by the length of interstates, expressways, and freeways (truck-meters)'
+                ) |>
+  add_col_attrs(evi_500, 
+                title = 'evi 500', 
+                description = 'average enhanced vegetation index within a 500 meter buffer radius'
+                ) |>
+  add_col_attrs(evi_1500, 
+                title = 'evi 1500', 
+                description = 'average enhanced vegetation index within a 1500 meter buffer radius'
+                ) |>
+  add_col_attrs(evi_2500, 
+                title = 'evi 2500', 
+                description = 'average enhanced vegetation index within a 2500 meter buffer radius'
+                ) |>
+  add_col_attrs(drive_time, 
+                title = 'drive time', 
+                description = 'drive time in minutes (in 6 minute intervals, ">60" if more than 1 hour drive time)'
+                ) |>
+  add_col_attrs(distance, 
+                title = 'distance', 
+                description = 'distance in meters'
+                )
+  
 saveRDS(d, "data/degauss_geomarker_library.rds")

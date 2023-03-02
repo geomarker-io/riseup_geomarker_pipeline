@@ -1,7 +1,14 @@
 
+.cran_packages <- c("sf", "s3", "terra")
+.inst <- .cran_packages %in% installed.packages()
+if(any(!.inst)) {
+  install.packages(.cran_packages[!.inst], repos = "http://cran.us.r-project.org")
+}
+
 library(tidyverse)
 library(dht)
 library(sf)
+library(CODECtools)
 
 d <- readRDS("data/addresses_geocoded.rds")
 
@@ -141,6 +148,21 @@ d.pct_treecanopy <- bind_cols(d.point, pct_treecanopy) |>
 d.nlcd <- d.pct_green |> 
   left_join(d.pct_impervious, by = "PAT_ENC_CSN_ID") |> 
   left_join(d.pct_treecanopy, by = "PAT_ENC_CSN_ID")
+
+# add column attributes
+d <- d |>
+  add_col_attrs(pct_green_2019, 
+                title = 'percentage green', 
+                description = 'percent of green = TRUE nlcd cells overlapping buffer (green = TRUE if landcover classification in any category except water, ice/snow, developed medium intensity, developed high intensity, rock/sand/clay)'
+  ) |>
+  add_col_attrs(pct_impervious_2019, 
+                title = 'percentage impervious', 
+                description = 'average percent impervious of all nlcd cells overlapping the buffer'
+  ) |>
+  add_col_attrs(pct_treecanopy_2016, 
+                title = 'percentage treecanopy', 
+                description = 'average percent tree canopy cover of all nlcd cells overlapping the buffer'
+  ) 
 
 saveRDS(d.nlcd, "data/nlcd.rds")
 
