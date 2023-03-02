@@ -4,20 +4,29 @@
 # 1-17-2023
 # using 2019 acs data from hh_acs and dep index instead of matching admission year, so that dep index is consistent at tract level.
 # manually download and add nlcd data
+#
+# 1-31-2023
+# limit admission time to between 1/1/2016 and 12/31/2022 
+#
+# 2-8-2023
+# using parcel package for parcel data
 
-#remotes::install_github("degauss-org/dht")
+
 library(tidyverse)
 library(lubridate)
 library(dht)
 library(data.table)
-#devtools::install_github("geomarker-io/CODECtools")
 library(CODECtools)
+library(parcel)
+#devtools::install_github("geomarker-io/CODECtools")
 #remotes::install_github("geomarker-io/s3")
+#remotes::install_github("degauss-org/dht")
+#renv::install("geomarker-io/parcel")
 
 #input = "Admissions_for_Jan_2022_asthma_pul_and_gen_peds.csv"
 input = "Hospital Admissions.csv"
 
-source("add_parcel_id.R")
+#source("add_parcel_id.R")
 
 #---------------------------------------------------------
 # organize addresses
@@ -26,11 +35,21 @@ source("add_parcel_id.R")
 data.in <- readr::read_csv(paste0("raw-data/", input), na = c("NA", "-", "NULL")) |>  # n = 135871 records 
   mutate(pat_zip_clean = str_split(PAT_ZIP, "-", simplify=TRUE)[,1]) |>  
   unite("address", c(PAT_ADDR_1, PAT_CITY, PAT_STATE, pat_zip_clean), remove = FALSE, sep=" ") 
+dim(data.in)
 
 # data cleaning
 # remove a duplicated record (based on PAT_ENC_CSN_ID) from current dataset
-data.in <- data.in |> 
+d <- data.in |> 
   filter(!(PAT_ENC_CSN_ID == "549864470" & MAPPED_RACE == "Unknown")) # 135870
+dim(d)
+# limit data to patients admitted between 1/1/2016 and 12/31/2021
+summary(data.in$HOSP_ADMSN_TIME)
+
+d <- d |> 
+  filter(HOSP_ADMSN_TIME <= ymd(20211231)) # 124244
+dim(d)
+
+summary(d$HOSP_ADMSN_TIME)
 
 # cache the following functions locally to disk
 fc <- memoise::cache_filesystem(fs::path(fs::path_wd(), "localcache"))
@@ -43,14 +62,14 @@ degauss_run <- memoise::memoise(degauss_run, omit_args = c("quiet"), cache = fc)
 start_time <- Sys.time()
 
 # postal
-d <- data.in |> 
+d <- d |> 
   degauss_run("postal", "0.1.4", quiet = FALSE) 
 dim(d)
 
 # geocoder
 d <- d |> 
-  degauss_run("geocoder", "3.3.0", quiet = FALSE) |>  # duplicated records: n=136949
-  distinct(.keep_all = TRUE)   # keep distinct rows: n = 135871
+  degauss_run("geocoder", "3.3.0", quiet = FALSE) |>  # duplicated records
+  distinct(.keep_all = TRUE)   # keep distinct rows
 dim(d)
 
 # 2010 Census Tract Geographies
@@ -301,23 +320,20 @@ write_csv(d, file = sprintf("data/HospitalAdmissions_degauss_ti_acs_ags_%s.csv",
 # Add parcel ID
 # will cause duplicated records with unique parcel IDs
 #--------------------------------------------------------
-# Downloaded Hamilton parcels directly from release
-# readr::read_csv("https://github.com/geomarker-io/hamilton_parcels/releases/download/v1.1.0/hamilton_parcels.csv")
-# reported error
+renv::install("geomarker-io/parcel")
+library(parcel)
 
-hamilton_parcels <- read_csv("data/hamilton_parcels.csv")
+d.in <- readRDS("data/HospitalAdmissions_degauss_ti_acs_ags_2023-01-31.rds")
+dim(d.in) # 124,244
 
-d <- add_parcel_id(d) |>
-  tidyr::unnest(parcel_id, keep_empty = TRUE) |>
-  dplyr::left_join(hamilton_parcels) 
+d <- d.in |>
+  parcel::add_parcel_id(quiet = FALSE) |>
+  tidyr::unnest(cols = c(parcel_id)) |>   # 140,778
+  dplyr::left_join( parcel::cagis_parcels, by = "parcel_id")  # 140,778
 dim(d)
 
 # save
 saveRDS(d, file = sprintf("data/HospitalAdmissions_degauss_ti_acs_ags_parcel_%s.rds", Sys.Date()))
-write_csv(d, file = sprintf("data/HospitalAdmissions_degauss_ti_acs_ags_parcel_%s.csv", Sys.Date()))
-
-
-
 
 
 
