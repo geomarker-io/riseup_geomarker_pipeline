@@ -3,8 +3,8 @@ library(tidyverse)
 library(CODECtools)
 
 d <-
-  c("hospital_admission_joined_nonparcel","parcel_data") %>%
-  map(~ readRDS(paste0("data/", ., ".rds"))) %>%
+  c("hospital_admission_joined_nonparcel","parcel_data") |>
+  map(~ readRDS(paste0("data/", ., ".rds"))) |>
   reduce(dplyr::left_join, by = "PAT_ENC_CSN_ID")
 
 d <- d |>
@@ -18,3 +18,31 @@ d <- d |>
   add_type_attrs()
 
 saveRDS(d, "data/hospital_admission_joined_data.rds")
+
+
+# summary message
+n.total = length(unique(d$PAT_ENC_CSN_ID))
+n.geocoded = d |> 
+  select(PAT_ENC_CSN_ID, geocode_result) |> 
+  distinct() |> 
+  filter(geocode_result == "geocoded") |> 
+  nrow()
+n.parcel = d |> 
+  select(PAT_ENC_CSN_ID, parcel_id) |> 
+  filter(!is.na(parcel_id)) |> 
+  group_by(PAT_ENC_CSN_ID) |> 
+  summarise(n = n()) |> 
+  nrow()
+
+message(
+  "Among a total of ",
+  scales::number(n.total, big.mark = ","),
+  " hospital admissions, ",
+  scales::number(n.geocoded, big.mark = ","),
+  " (", scales::percent(n.geocoded / n.total), ")",
+  " were geocoded, and ",
+  scales::number(n.parcel, big.mark = ","),
+  " (", scales::percent(n.parcel / n.total),")",
+  " were matched to one or more parcel IDs."
+)
+

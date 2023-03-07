@@ -14,20 +14,20 @@ d <- readRDS("data/addresses_geocoded.rds")
 
 # make buffers around points
 d.point <- d |> 
-  select(PAT_ENC_CSN_ID , lat, lon) %>% 
+  select(PAT_ENC_CSN_ID , lat, lon) |> 
   filter(complete.cases(.)) |>  # keep geocoded ones
   distinct(.keep_all = TRUE)  # remove duplicated records while adding parcel ID
 
 d.point <-
-  d.point %>%
-  dplyr::select(PAT_ENC_CSN_ID, lat, lon) %>%
-  stats::na.omit() %>%
-  tidyr::nest(PAT_ENC_CSN_ID = c(PAT_ENC_CSN_ID)) %>%
+  d.point |>
+  dplyr::select(PAT_ENC_CSN_ID, lat, lon) |>
+  stats::na.omit() |>
+  tidyr::nest(PAT_ENC_CSN_ID = c(PAT_ENC_CSN_ID)) |>
   sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
 
 # project to 5072 for buffering in meters
-d.buffered <- d.point %>%
-  sf::st_transform(5072) %>%
+d.buffered <- d.point |>
+  sf::st_transform(5072) |>
   sf::st_buffer(dist = 400)
 
 d.buffered <- terra::vect(d.buffered)

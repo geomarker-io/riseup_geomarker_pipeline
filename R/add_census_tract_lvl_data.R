@@ -1,8 +1,26 @@
 
+.cran_packages <- c("cincy")
+.inst <- .cran_packages %in% installed.packages()
+if(any(!.inst)) {
+  install.packages(.cran_packages[!.inst], repos = "http://cran.us.r-project.org")
+}
+
 library(tidyverse)
 library(CODECtools)
+library(cincy)
 
 d <- readRDS("data/census_tract_identifier.rds")
+
+#---------------------------------------------------------
+# neighborhood
+#---------------------------------------------------------
+d.neighborhood <- d |> 
+  select(-census_tract_id_2020) |> 
+  add_neighborhood(vintage = "2010") |> 
+  select(PAT_ENC_CSN_ID, neighborhood)
+
+d <- d |> 
+  left_join(d.neighborhood, by = "PAT_ENC_CSN_ID")
 
 #---------------------------------------------------------
 # tract_indices (2010 census tract id)
@@ -46,11 +64,12 @@ if (file.exists("raw-data/AGS_crime_risk/ags_crime_risk.csv")){
   
 }
 
+
 # add column attributes
 d <- d |>
   add_col_attrs(census_block_group_id_2010, 
                 title = 'census block group id 2010', 
-                description = '2010 census block group id '
+                description = '2010 census block group id'
                 ) |>
   add_col_attrs(census_tract_id_2010, 
                 title = 'census tract id 2010' , 
@@ -58,11 +77,15 @@ d <- d |>
                 ) |>
   add_col_attrs(census_block_group_id_2020, 
                 title = 'census block group id 2020' , 
-                description = '2020 census block group id '
+                description = '2020 census block group id'
                 ) |>
   add_col_attrs(census_tract_id_2020, 
                 title = 'census tract id 2020' , 
-                description = '2020 census tract id '
+                description = '2020 census tract id'
+                ) |>
+  add_col_attrs(neighborhood, 
+                title = 'neighborhood' , 
+                description = 'neighborhood in hamilton county'
                 ) |>
   add_col_attrs(adi, 
                 title = 'adi' , 
