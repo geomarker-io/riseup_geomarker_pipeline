@@ -13,6 +13,8 @@ func_download <- function(url, dest){
 year <- 2015:2022
 dwnld_url <- glue::glue('https://aqs.epa.gov/aqsweb/airdata/daily_aqi_by_county_{year}.zip')
 dest <- glue::glue("tmp/{year}.zip")
+
+message("downloading AQI data...")
 purrr::walk2(dwnld_url, dest, ~func_download(.x, .y))
 
 file <- glue::glue("tmp/daily_aqi_by_county_{year}.csv")
@@ -47,6 +49,7 @@ download_weather <- function(var, year) {
 var <- c("WIND", "TEMP", "RH_DP")
 plan <- expand_grid(var, year)
 
+message("downloading weather data...")
 weather <- purrr::map2_dfr(plan$var, plan$year, download_weather)
 
 weather <- weather |>
@@ -74,6 +77,7 @@ weather <- weather |>
 
 # pollen / mold
 
+message("downloading pollen and mold data...")
 download.file("https://southwestohioair.org/DocumentCenter/View/447",
               destfile = "tmp/pollen_mold_2021.xlsx")
 
@@ -130,6 +134,7 @@ d_pollen_mold <- left_join(d_pollen_calculations,
 # shotspotter
 library(sf)
 
+message("downloading shotspotter data...")
 download.file("https://github.com/geomarker-io/shotspotter/raw/main/shotspotter_street_ranges.rds",
               destfile = "tmp/shotspotter_street_ranges.rds")
 
