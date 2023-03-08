@@ -1,4 +1,5 @@
 library(tidyverse)
+library(CODECtools)
 
 # AQI
 
@@ -19,7 +20,13 @@ file <- glue::glue("tmp/daily_aqi_by_county_{year}.csv")
 aqi <- purrr::map_dfr(file, ~read_csv(.x)) |>
   filter(`State Name` == "Ohio" & `county Name` == "Hamilton") |>
   select(date = Date,
-         aqi = AQI)
+         aqi = AQI) |>
+  add_col_attrs(date,
+                title = "Date",
+                description = "Date") |>
+  add_col_attrs(aqi,
+                title = "AQI",
+                description = "Air Quality Index")
 
 # weather
 
@@ -48,7 +55,22 @@ weather <- weather |>
   rename(wind_speed = `Wind Speed - Resultant`,
          wind_direction = `Wind Direction - Resultant`,
          outdoor_temp = `Outdoor Temperature`,
-         relative_humidity = `Relative Humidity`)
+         relative_humidity = `Relative Humidity`) |>
+  add_col_attrs(date,
+                title = "Date",
+                description = "Date") |>
+  add_col_attrs(wind_speed,
+                title = "Wind Speed",
+                description = "Wind Speed") |>
+  add_col_attrs(wind_direction,
+                title = "Wind Direction",
+                description = "Wind Direction") |>
+  add_col_attrs(outdoor_temp,
+                title = "Outdoor Temperature",
+                description = "Outdoor Temperature") |>
+  add_col_attrs(relative_humidity,
+                title = "Relative Humidity",
+                description = "Relative Humidity")
 
 # pollen / mold
 
@@ -93,7 +115,17 @@ d_mold_calculations <- select(d_2021, 1, 85:108) |>
 d_pollen_mold <- left_join(d_pollen_calculations,
                            d_mold_calculations,
                            by = "date") |>
-  mutate(date = as.Date(date))
+  mutate(date = as.Date(date)) |>
+  add_col_attrs(date,
+                title = "Date",
+                description = "Date") |>
+  add_col_attrs(pollen_total,
+                title = "Pollen Score",
+                description = "Pollen count (grains/cubic meter) * pollen factor") |>
+  add_col_attrs(outdoor_mold_total,
+                title = "Outdoor Mold Score",
+                description = "Outdoor mold count (spores/cubic meter) * mold factor")
+
 
 # shotspotter
 library(sf)
@@ -119,7 +151,7 @@ d <-
   st_transform(st_crs(neigh)) |>
   st_join(neigh, largest = TRUE)
 
-d_daily <-
+d_daily_shots <-
   d |>
   st_drop_geometry() |>
   filter(!is.na(neighborhood)) |>
@@ -127,17 +159,32 @@ d_daily <-
   group_by(neighborhood, date) |>
   summarize(n = n())
 
-all_days <- tibble::tibble(date = rep(seq.Date(from = min(d_daily$date), to = max(d_daily$date), by = "day"), 3),
+all_days <- tibble::tibble(date = rep(seq.Date(from = min(d_daily_shots$date), to = max(d_daily_shots$date), by = "day"), 3),
                            neighborhood = c(rep("Avondale", 1967), rep("E. Price Hill", 1967), rep("W. Price Hill", 1967)))
 
-d_daily <- left_join(all_days, d_daily, by = c("neighborhood", "date")) |>
+d_daily_shots <- left_join(all_days, d_daily_shots, by = c("neighborhood", "date")) |>
   mutate(n = ifelse(is.na(n), 0, n)) |>
   pivot_wider(names_from = neighborhood,
               values_from = n) |>
   rename(n_shots_avondale = Avondale,
          n_shots_e_price_hill = `E. Price Hill`,
          n_shots_w_price_hill = `W. Price Hill`) |>
-  mutate(n_shots_total = n_shots_avondale + n_shots_e_price_hill + n_shots_w_price_hill)
+  mutate(n_shots_total = n_shots_avondale + n_shots_e_price_hill + n_shots_w_price_hill) |>
+  add_col_attrs(date,
+                title = "Date",
+                description = "Date") |>
+  add_col_attrs(n_shots_avondale,
+                title = "Number of Shots - Avondale",
+                description = "Number of shots recorded in Avondale") |>
+  add_col_attrs(n_shots_e_price_hill,
+                title = "Number of Shots - E. Price Hill",
+                description = "Number of shots recorded in East Price Hill") |>
+  add_col_attrs(n_shots_w_price_hill,
+                title = "Number of Shots - W. Price Hill",
+                description = "Number of shots recorded in West Price Hill") |>
+  add_col_attrs(n_shots_total,
+                title = "Number of Shots - Avondale, E. Price Hill, and W. Price Hill",
+                description = "Number of shots recorded in Avondale, E. Price Hill, and W. Price Hill")
 
 
 # d_weekly <-
@@ -151,7 +198,8 @@ d_daily <- left_join(all_days, d_daily, by = c("neighborhood", "date")) |>
 daily <-
   full_join(aqi, weather, by = "date") |>
   full_join(d_pollen_mold, by = "date") |>
-  full_join(d_daily, by = "date")
+  full_join(d_daily_shots, by = "date")
 
 saveRDS(daily, "daily_data.rds")
 
+fs::dir_delete("tmp")
