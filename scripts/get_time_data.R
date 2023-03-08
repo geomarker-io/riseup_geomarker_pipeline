@@ -205,6 +205,9 @@ daily <-
   full_join(d_pollen_mold, by = "date") |>
   full_join(d_daily_shots, by = "date")
 
+daily <- add_type_attrs(daily)
+glimpse_schema(daily)
+
 saveRDS(daily, "daily_data.rds")
 
 fs::dir_delete("tmp")
