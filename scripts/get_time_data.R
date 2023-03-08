@@ -191,15 +191,6 @@ d_daily_shots <- left_join(all_days, d_daily_shots, by = c("neighborhood", "date
                 title = "Number of Shots - Avondale, E. Price Hill, and W. Price Hill",
                 description = "Number of shots recorded in Avondale, E. Price Hill, and W. Price Hill")
 
-
-# d_weekly <-
-#   d_daily |>
-#   mutate(week = lubridate::floor_date(date, "week")) |>
-#   group_by(neighborhood, week) |>
-#   summarize(n = sum(n))
-
-# combine
-
 daily <-
   full_join(aqi, weather, by = "date") |>
   full_join(d_pollen_mold, by = "date") |>
