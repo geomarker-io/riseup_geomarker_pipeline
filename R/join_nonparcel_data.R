@@ -20,3 +20,19 @@ d <- d |>
 saveRDS(d, "data/hospital_admission_joined_nonparcel.rds")
 
 
+# summary message
+n.total = length(unique(d$PAT_ENC_CSN_ID))
+n.geocoded = d |> 
+  select(PAT_ENC_CSN_ID, geocode_result) |> 
+  distinct() |> 
+  filter(geocode_result == "geocoded") |> 
+  nrow()
+
+message(
+  "Among a total of ",
+  scales::number(n.total, big.mark = ","),
+  " hospital admissions, ",
+  scales::number(n.geocoded, big.mark = ","),
+  " (", scales::percent(n.geocoded / n.total), ")",
+  " were geocoded."
+)
