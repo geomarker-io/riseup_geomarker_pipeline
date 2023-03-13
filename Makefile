@@ -42,6 +42,3 @@ data/hospital_admission_joined_parcel_nonparcel.rds: data/hospital_admission_joi
 
 data/hospital_admission_joined_parcel_nonparcel_temporal.rds: data/hospital_admission_joined_parcel_nonparcel.rds data/daily_data.rds R/join_parcel_nonparcel_temporal.R
 	Rscript R/join_parcel_nonparcel_temporal.R
-
-
-
