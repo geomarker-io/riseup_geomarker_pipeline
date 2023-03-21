@@ -1,8 +1,5 @@
-## library(tidyverse)
 library(dplyr)
 library(readr)
-## library(lubridate)
-## library(dht)
 
 # read in raw admission data
 d <- read_csv("data-raw/Hospital Admissions.csv",
@@ -16,22 +13,27 @@ d <- read_csv("data-raw/Hospital Admissions.csv",
                                     PAT_STATE = col_character(),
                                     PAT_ZIP = col_character()))
 
-# remove a duplicated record (based on PAT_ENC_CSN_ID) from current dataset
-d <- d |> filter(!(PAT_ENC_CSN_ID == "549864470" & MAPPED_RACE == "Unknown"))
+# remove duplicated PAT_ENC_CSN_ID
+d <- filter(d, !duplicated(d$PAT_ENC_CSN_ID))
 
 # limit data to patients admitted between 1/1/2016 and 12/31/2021
-d <- d |> filter(HOSP_ADMSN_TIME <= ymd(20211231))
+d <- d |> filter(HOSP_ADMSN_TIME > as.Date("2016-01-01") & HOSP_ADMSN_TIME < as.Date("2021-12-31"))
 
-d.address <- d |>  
-  separate(PAT_ZIP, 
-           c("PAT_ZIP1","PAT_ZIP2"), 
-           sep = "-") |> 
-  unite("address", 
-        c(PAT_ADDR_1, PAT_CITY, PAT_STATE, PAT_ZIP1), 
-        remove = FALSE, 
-        sep=" ") |> 
-  select(PAT_ENC_CSN_ID, address)
+# create address from address components
+d <- d |>
+  tidyr::unite(
+    "raw_address",
+    c(PAT_ADDR_1, PAT_ADDR_2, PAT_CITY, PAT_STATE, PAT_ZIP),
+    sep = " ", na.rm = TRUE)
 
-# postal
-d <- d |> 
-  degauss_run("postal", "0.1.4", quiet = FALSE) 
+# clean and parse addresses with postal
+d <-
+  d |> 
+  rename(address = raw_address) |>
+  dht::degauss_run("postal", "0.1.4", quiet = FALSE) |>
+  rename(raw_address = address)
+
+fs::dir_create("data")
+d |>
+  select(-starts_with("parsed."), -cleaned_address) |>
+  saveRDS("data/cleaned_addresses.rds")
