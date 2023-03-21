@@ -48,9 +48,9 @@ d <- d |>
 # 2010 census tract vintage
 #---------------------------------------------------------
 
-if (file.exists("raw-data/AGS_crime_risk/ags_crime_risk.csv")){
+if (file.exists("data-raw/AGS_crime_risk/ags_crime_risk.csv")){
   
-  ags_crime <- read_csv("raw-data/AGS_crime_risk/ags_crime_risk.csv") |> 
+  ags_crime <- read_csv("data-raw/AGS_crime_risk/ags_crime_risk.csv") |> 
     rename_all(~ paste0("ags_", .x)) |> 
     mutate(census_tract_id = as.character(ags_census_tract_id)) |> 
     select(-ags_census_tract_id)
@@ -60,7 +60,7 @@ if (file.exists("raw-data/AGS_crime_risk/ags_crime_risk.csv")){
   
 } else {
   
-  print("Cannot find raw-data/AGS_crime_risk/ags_crime_risk.csv. The data are proprietary product of Applied Geographic Solutions.")
+  print("Cannot find data-raw/AGS_crime_risk/ags_crime_risk.csv. The data are proprietary product of Applied Geographic Solutions.")
   
 }
 

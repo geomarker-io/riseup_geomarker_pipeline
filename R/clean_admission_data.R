@@ -9,7 +9,7 @@ library(tidyverse)
 library(lubridate)
 
 # read in raw admission data
-d <- readr::read_csv("raw-data/Hospital Admissions.csv", 
+d <- readr::read_csv("data-raw/Hospital Admissions.csv", 
                      na = c("NA", "-", "NULL")) # n = 135871 records
 dim(d)
 

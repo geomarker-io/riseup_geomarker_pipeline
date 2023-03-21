@@ -8,3 +8,4 @@ data/
 raw-data/
 geocoding_cache/
 .DS_Store
+/data-raw/
