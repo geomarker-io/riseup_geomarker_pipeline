@@ -1,28 +1,22 @@
 all: data/hospital_admission_joined_nonparcel.rds data/hospital_admission_joined_data.rds data/hospital_admission_joined_parcel_nonparcel_temporal.rds
 	echo "you did it!"
 
-data/hospital_admission.rds: R/clean_admission_data.R
-	Rscript R/clean_admission_data.R
+data/cleaned_addresses.rds: R/00_import_clean_data.R `data-raw/Hospital Admissions.csv`
+		Rscript R/00_import_clean_data.R
 
-data/addresses.rds: data/hospital_admission.rds R/make_addresses.R
-	Rscript R/make_addresses.R
+data/geocodes.rds: R/01_geocode.R data/cleaned_addresses.rds
+		Rscript R/01_geocode.R
 
-data/addresses_geocoded.rds: data/addresses.rds R/geocode_addresses.R
-	Rscript R/geocode_addresses.R
+data/exact_location_geomarkers.rds: data/geocodes.rds R/02_exact_location_geomarkers.R
+	Rscript R/02_exact_location_geomarkers.R
 
-data/degauss_geomarker_library.rds: data/addresses_geocoded.rds R/add_degauss_geomarker_library.R
-	Rscript R/add_degauss_geomarker_library.R
+data/census_tract_level_data.rds: data/geocodes.rds R/03_census_tract_level_data.R
+	Rscript R/03_census_tract_level_data.R
 
-data/nlcd.rds: data/addresses_geocoded.rds R/add_nlcd.R
+data/nlcd.rds: data/geocodes.rds R/add_nlcd.R
 	Rscript R/add_nlcd.R
 
-data/census_tract_identifier.rds: data/addresses_geocoded.rds R/add_census_tract_identifier.R
-	Rscript R/add_census_tract_identifier.R
-
-data/census_tract_lvl_data.rds: data/census_tract_identifier.rds R/add_census_tract_lvl_data.R
-	Rscript R/add_census_tract_lvl_data.R
-
-data/parcel_data.rds: data/addresses_geocoded.rds R/add_parcel_data.R
+data/parcel_data.rds: data/geocodes.rds R/add_parcel_data.R
 	Rscript R/add_parcel_data.R
 
 data/daily_data.rds: R/get_time_data.R
