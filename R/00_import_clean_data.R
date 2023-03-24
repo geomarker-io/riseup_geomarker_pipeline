@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 
 # read in raw admission data
-d <- read_csv("data-raw/Hospital Admissions.csv",
+d <- read_csv("data-raw/HospitalAdmissions.csv",
               na = c("NA", "-", "NULL"),
               col_types = cols_only(PAT_MRN_ID = col_character(),
                                     PAT_ENC_CSN_ID = col_character(),
@@ -28,7 +28,7 @@ d <- d |>
 
 # clean and parse addresses with postal
 d <-
-  d |> 
+  d |>
   rename(address = raw_address) |>
   dht::degauss_run("postal", "0.1.4", quiet = FALSE) |>
   rename(raw_address = address)

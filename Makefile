@@ -1,7 +1,7 @@
 all: data/hospital_admission_joined_nonparcel.rds data/hospital_admission_joined_data.rds data/hospital_admission_joined_parcel_nonparcel_temporal.rds
 	echo "you did it!"
 
-data/cleaned_addresses.rds: R/00_import_clean_data.R `data-raw/Hospital Admissions.csv`
+data/cleaned_addresses.rds: R/00_import_clean_data.R data-raw/HospitalAdmissions.csv
 		Rscript R/00_import_clean_data.R
 
 data/geocodes.rds: R/01_geocode.R data/cleaned_addresses.rds
@@ -16,7 +16,7 @@ data/census_tract_level_data.rds: data/geocodes.rds R/03_census_tract_level_data
 data/nlcd.rds: data/geocodes.rds R/add_nlcd.R
 	Rscript R/add_nlcd.R
 
-data/parcel_data.rds: data/geocodes.rds R/add_parcel_data.R
+data/parcel_data.rds: data/geocodes.rds R/05_add_parcel_data.R
 	Rscript R/add_parcel_data.R
 
 data/daily_data.rds: R/get_time_data.R
