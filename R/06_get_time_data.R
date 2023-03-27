@@ -149,7 +149,7 @@ d <- d |>
 
 neigh <-
   cincy::neigh_cchmc_2020 |>
-  filter(neighborhood %in% c("Avondale", "E. Price Hill", "W. Price Hill"))
+  filter(neighborhood_2020 %in% c("Avondale", "E. Price Hill", "W. Price Hill"))
 
 d <-
   d |>
@@ -159,17 +159,17 @@ d <-
 d_daily_shots <-
   d |>
   st_drop_geometry() |>
-  filter(!is.na(neighborhood)) |>
+  filter(!is.na(neighborhood_2020)) |>
   mutate(date = lubridate::date(date_time)) |>
-  group_by(neighborhood, date) |>
+  group_by(neighborhood_2020, date) |>
   summarize(n = n())
 
 all_days <- tibble::tibble(date = rep(seq.Date(from = min(d_daily_shots$date), to = max(d_daily_shots$date), by = "day"), 3),
-                           neighborhood = c(rep("Avondale", 1967), rep("E. Price Hill", 1967), rep("W. Price Hill", 1967)))
+                           neighborhood_2020 = c(rep("Avondale", 1967), rep("E. Price Hill", 1967), rep("W. Price Hill", 1967)))
 
-d_daily_shots <- left_join(all_days, d_daily_shots, by = c("neighborhood", "date")) |>
+d_daily_shots <- left_join(all_days, d_daily_shots, by = c("neighborhood_2020", "date")) |>
   mutate(n = ifelse(is.na(n), 0, n)) |>
-  pivot_wider(names_from = neighborhood,
+  pivot_wider(names_from = neighborhood_2020,
               values_from = n) |>
   rename(n_shots_avondale = Avondale,
          n_shots_e_price_hill = `E. Price Hill`,
@@ -197,8 +197,6 @@ daily <-
   full_join(d_daily_shots, by = "date")
 
 daily <- add_type_attrs(daily)
-glimpse_schema(daily)
-
-saveRDS(daily, "daily_data.rds")
+saveRDS(daily, "data/daily_data.rds")
 
 fs::dir_delete("tmp")
