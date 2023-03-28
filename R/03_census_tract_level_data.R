@@ -6,7 +6,7 @@ d <- readRDS("data/geocodes.rds")
 
 # add_neighborhood
 # (doesn't work with more than one census tract id column)
-d |>
+d <- d |>
   rename(foo = census_tract_id_2020) |>
   cincy::add_neighborhood(vintage = "2010") |>
   rename(census_tract_id_2020 = foo)
@@ -15,6 +15,7 @@ d |>
 hh_acs_2019 <-
   read_tdr_csv("https://github.com/geomarker-io/hh_acs_measures/releases/download/v1.0.0") |>
   filter(year == 2019)
+
 d <-
   left_join(d,
           select(hh_acs_2019, -year, -census_tract_vintage),
