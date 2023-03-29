@@ -17,7 +17,7 @@ d <- read_csv("data-raw/HospitalAdmissions.csv",
 d <- filter(d, !duplicated(d$PAT_ENC_CSN_ID))
 
 # limit data to patients admitted between 1/1/2016 and 12/31/2021
-d <- d |> filter(HOSP_ADMSN_TIME > as.Date("2016-01-01") & HOSP_ADMSN_TIME < as.Date("2021-12-31"))
+d <- d |> filter(HOSP_ADMSN_TIME >= as.Date("2016-01-01") & HOSP_ADMSN_TIME <= as.Date("2021-12-31"))
 
 # create address from address components
 d <- d |>
@@ -32,6 +32,10 @@ d <-
   rename(address = raw_address) |>
   dht::degauss_run("postal", "0.1.4", quiet = FALSE) |>
   rename(raw_address = address)
+
+# Hamilton county flag
+d <- d |> 
+  mutate(hamilton_zip = ifelse(parsed.postcode_five %in% cincy::zcta_tigris_2020$zcta, 1, 0))
 
 fs::dir_create("data")
 d |>
