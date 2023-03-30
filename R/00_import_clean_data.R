@@ -34,8 +34,7 @@ d <-
   rename(raw_address = address)
 
 # Hamilton county flag
-d <- d |> 
-  mutate(hamilton_zip = ifelse(parsed.postcode_five %in% cincy::zcta_tigris_2020$zcta, 1, 0))
+d <- mutate(d, hamilton_zip = parsed.postcode_five %in% cincy::zcta_tigris_2020)
 
 fs::dir_create("data")
 d |>
