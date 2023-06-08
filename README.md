@@ -1,33 +1,34 @@
-## RISEUP Pipeline
+## RISEUP Geomarker Pipeline
 
 This group of R scripts is used to create a dataset by compiling geospatial data from multiple data sources at census tract level and parcel level.
 
 ```mermaid
 %%{init: { "fontFamily": "arial" } }%%
-graph TB
 
-classDef id fill:#acd68e,stroke:#000,stroke-width:1px; %% green
-classDef input fill:#c490ae,stroke:#000,stroke-width:1px; %% purple
-classDef tool fill:#e8e8e8,stroke:#000,stroke-width:1px,stroke-dasharray: 5 2; %% grey
-classDef data fill:#67ccde,stroke:#000,stroke-width:1px; %% blue
+graph LR
+
+classDef id fill:#acd68e,stroke:#000,stroke-width:1px;
+classDef input fill:#c490ae,stroke:#000,stroke-width:1px;
+classDef tool fill:#e8e8e8,stroke:#000,stroke-width:1px,stroke-dasharray: 5 2;
+classDef data fill:#67ccde,stroke:#000,stroke-width:1px;
 
 address(address):::input
 
-address --- date(date related to address):::id
-date ------> shared_exposure_series(weather, AQS,\npollen, mold,\nseasonality,\ninstructional days):::data
+address ---> date(date related \nto address):::id
+date --date join on all addresses \nin primary catchment area---> shared_exposure_series(weather, AQS,\npollen, mold,\nseasonality,\ninstructional days):::data
 
-address --- ac(address\n cleaning, parsing,\n and normalization):::tool --- clean_address(cleaned and parsed address):::data
+address --address \ncleaning, \nparsing, \nnormalization--> clean_address(address \ncomponents):::data
 
-clean_address --- geocoding(geocoding):::tool --- geocode(geocoded coordinates):::id
-clean_address --- am(exact address\nmatching):::tool --- parcel(parcel identifier):::id
+clean_address --street range \ngeocoding--> geocode(geocoded \ncoordinates):::id
+clean_address --exact address\nmatching--> parcel(parcel \nidentifier):::id
 
-parcel --- p_join(parcel id join):::tool --- parcel_data(tax auditor databases,\nhousing code violations,\nhistory of hospitalization):::data
+geocode --geomarker \n assessment \n library---> pd(point-level \ndata resources, e.g.,\n greenspace, traffic,\n air pollution, \nhospital access):::data
 
-geocode --- degauss(geomarker\nlibrary):::tool
-degauss --- pd(point-level data resources, e.g.,\n greenspace, traffic,\n air pollution, hospital access):::data
+geocode --spatial \nintersection--> ct(census tract \nidentifier):::id
+ct --census tract id \n & year join --> tract_data(tract-level data resources, e.g.,\nChild Opportunity Index,\n Material Deprivation Index):::data
 
-geocode --- gi(spatial\nintersection):::tool --- ct(census tract identifier):::id
-ct --- st_join(census tract id \n+ year join):::tool --- tract_data(tract-level data resources, e.g.,\nChild Opportunity Index,\n Material Deprivation Index):::data
+parcel --parcel id join \n on ---> parcel_data(tax auditor databases,\nhousing code violations,\nhouse hospitalization history):::data
+
 ```
 
 ### Data sources
