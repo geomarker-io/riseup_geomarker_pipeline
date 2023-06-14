@@ -1,23 +1,17 @@
 library(parcel)
-library(CODECtools)
+library(dplyr)
 
-d <- readRDS("data/geocodes.rds")
+d <- readRDS("data/geocodes.rds") # n = 124,173
 
-d <- d |>
-  rename(address = parsed_address) |>
-  add_parcel_id() |>
-  tidyr::unnest(cols = c(parcel_id))
+d_parcel <- get_parcel_data(d$parsed_address) 
 
-fs::dir_create("data-raw/hamilton_parcels")
-write_csv(cagis_parcels, "data-raw/hamilton_parcels/hamilton_parcels.csv")
+d_parcel_unique <- d_parcel |>
+  filter(!is.na(parcel_id), # remove unmatched addresses n = 56,755
+         land_use != "residential vacant land") |> # remove residential vacant land n = 54,978
+  group_by(input_address) |>
+  slice(1) # filter to one parcel id per address n = 22,084
 
-download.file("https://raw.githubusercontent.com/geomarker-io/parcel/main/data-raw/tabular-data-resource.yaml",
-              destfile = "data-raw/hamilton_parcels/tabular-data-resource.yaml")
-
-cagis_parcels <- read_tdr_csv("data-raw/hamilton_parcels")
-
-d <- d |>
-  dplyr::left_join(cagis_parcels, by = "parcel_id")
+d <- dplyr::left_join(d, d_parcel_unique, by = c("parsed_address" = "input_address"))
 
 # save
 saveRDS(d, "data/parcel_data.rds")

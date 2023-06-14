@@ -1,4 +1,4 @@
-library(CODECtools)
+library(codec)
 library(fs)
 library(dplyr)
 library(readr)
@@ -8,7 +8,14 @@ d <- readRDS("data/geocodes.rds")
 n.admission = dim(d)[1]
 n.address = d |> filter(!duplicated(d$parsed_address)) |> nrow()
 n.geocoded = d |> filter(!duplicated(d$parsed_address)) |> filter(geocode_result == "geocoded") |> nrow()
-n.geocoded.hc = d |> filter(!duplicated(d$parsed_address)) |> filter(geocode_result == "geocoded") |> filter(hamilton_zip == 1) |> nrow()
+
+n.geocoded.hc = 
+  d |> 
+  filter(!duplicated(d$parsed_address)) |> 
+  filter(geocode_result == "geocoded") |> 
+  mutate(zip = stringr::str_sub(parsed_address, -5)) |>
+  filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |> 
+  nrow()
 
 if (fs::file_exists("data/exact_location_geomarkers.rds")) {
   exact <- readRDS("data/exact_location_geomarkers.rds")
@@ -22,7 +29,12 @@ if (fs::file_exists("data/census_tract_level_data.rds")) {
 
 if (fs::file_exists("data/parcel_data.rds")) {
   parcel <- readRDS("data/parcel_data.rds")
-  n.parcel = parcel |> filter(!duplicated(parcel$address)) |> filter(!is.na(parcel_id)) |> filter(hamilton_zip == 1) |> nrow()
+  n.parcel = parcel |> 
+    filter(!duplicated(parsed_address)) |>
+    filter(!is.na(parcel_id)) |> 
+    mutate(zip = stringr::str_sub(parsed_address, -5)) |>
+    filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |> 
+    nrow()
   d <- left_join(d, parcel)
 }
 
@@ -42,7 +54,7 @@ d <- d |>
 
 saveRDS(d, "data/riseup_geomarker_pipeline_output.rds")
 
-CODECtools::write_tdr_csv(d, "data/")
+codec::write_tdr_csv(d, "data/")
 
 # summary message
 
