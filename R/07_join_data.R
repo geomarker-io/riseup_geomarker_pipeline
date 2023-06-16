@@ -79,3 +79,17 @@ message(
   " geocoded Hamilton addresses are matched to one or more parcel IDs."
 )
 
+d |>
+  mutate(zip = stringr::str_sub(parsed_address, -5)) |>
+  filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) #  63,247
+
+d |>
+  mutate(zip = stringr::str_sub(parsed_address, -5)) |>
+  filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |>
+  filter(geocode_result != "cincy_inst_foster_addr") # 61,117
+
+d |>
+  filter(!is.na(parcel_id)) # 40,980
+
+40980/63247
+# 65% addresses with hc ZIP are matched to a parcel
