@@ -1,20 +1,32 @@
 library(parcel)
 library(dplyr)
 
-d <- readRDS("data/geocodes.rds") # n = 124,173
+d <- readRDS("data/geocodes.rds")
 
-d_parcel <- get_parcel_data(unique(d$parsed_address)) # n = 73,698
-
-d_parcel_unique <- d_parcel |>
+parcel_links <-
+  d$parsed_address |>
+  unique() |>
+  link_parcel() |>
   filter(
-    !is.na(parcel_id), # remove unmatched addresses n = 56,755
+    !is.na(parcel_id),
     land_use != "residential vacant land"
-  ) |> # remove residential vacant land n = 54,978
-  group_by(input_address) |>
-  mutate(n_matches = n()) |>
-  slice_max(score, n = 1, with_ties = FALSE) # filter to one parcel id per address n = 22,084
+  )
+  left_join(codec::read_tdr_csv(fs::path_package("parcel", "cagis_parcels")),
+            join_by(parcel_id)) |>
+  nest_by(input_address, .key = "parcel_data")
 
-d <- dplyr::left_join(d, d_parcel_unique, by = c("parsed_address" = "input_address"))
+d_parcel <-
+  left_join(d,
+            parcel_links,
+            by = join_by(parsed_address == input_address),
+            relationship = "many-to-many")
+
+# TODO filter to one parcel per address
+# for now, randomly sample one if more than one
+# future code should consider logic for selecting *which* is best one to choose
+d_out <-
+  tidyr::unnest(d_parcel, parcel_data, keep_empty = TRUE) |>
+  slice_sample(n = 1, by = PAT_ENC_CSN_ID)
 
 # save
-saveRDS(d, "data/parcel_data.rds")
+saveRDS(d_out, "data/parcel.rds")

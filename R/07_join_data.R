@@ -32,8 +32,8 @@ if (fs::file_exists("data/census_tract_level_data.rds")) {
   d <- left_join(d, tract)
 }
 
-if (fs::file_exists("data/parcel_data.rds")) {
-  parcel <- readRDS("data/parcel_data.rds")
+if (fs::file_exists("data/parcel.rds")) {
+  parcel <- readRDS("data/parcel.rds")
   n.parcel <- parcel |>
     filter(!duplicated(parsed_address)) |>
     filter(!is.na(parcel_id)) |>
