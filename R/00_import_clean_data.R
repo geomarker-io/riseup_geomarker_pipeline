@@ -22,6 +22,12 @@ d <- filter(d, !duplicated(d$PAT_ENC_CSN_ID))
 # limit data to patients admitted between 1/1/2016 and 12/31/2021
 d <- d |> filter(HOSP_ADMSN_TIME >= as.Date("2016-01-01") & HOSP_ADMSN_TIME <= as.Date("2021-12-31"))
 
+# TODO remove this temporary smaller dataset
+set.seed(11)
+d <- d |>
+  slice_sample(n = 1, by = PAT_MRN_ID) |>
+  slice_sample(n = 2000)
+
 # create address from address components
 d <- d |>
   tidyr::unite(

@@ -3,10 +3,6 @@ library(dht)
 
 d <- readRDS("data/cleaned_addresses.rds")
 
-# temporary smaller dataset
-set.seed(11)
-d <- sample_n(d, 2000)
-
 # geocode
 d <- d |>
   rename(address = parsed_address) |>
