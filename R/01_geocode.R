@@ -47,11 +47,12 @@ d <-
   )
 
 # 2020 census block group and tract
-d <- d |> degauss_run("census_block_group", "0.6.0", argument = "2020", quiet = FALSE)
-
-add_col_attrs(census_block_group_id_2020,
-  title = "2020 Census Block Group identifer"
-) |>
+d <-
+  d |>
+  degauss_run("census_block_group", "0.6.0", argument = "2020", quiet = FALSE) |>
+  add_col_attrs(census_block_group_id_2020,
+    title = "2020 Census Block Group identifer"
+  ) |>
   add_col_attrs(census_tract_id_2020,
     title = "2020 Census Tract identifer"
   )

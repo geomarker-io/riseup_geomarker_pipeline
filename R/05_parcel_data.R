@@ -11,15 +11,18 @@ parcel_links <-
     !is.na(parcel_id),
     land_use != "residential vacant land"
   )
-  left_join(codec::read_tdr_csv(fs::path_package("parcel", "cagis_parcels")),
-            join_by(parcel_id)) |>
+left_join(
+  codec::read_tdr_csv(fs::path_package("parcel", "cagis_parcels")),
+  join_by(parcel_id)
+) |>
   nest_by(input_address, .key = "parcel_data")
 
 d_parcel <-
   left_join(d,
-            parcel_links,
-            by = join_by(parsed_address == input_address),
-            relationship = "many-to-many")
+    parcel_links,
+    by = join_by(parsed_address == input_address),
+    relationship = "many-to-many"
+  )
 
 # TODO filter to one parcel per address
 # for now, randomly sample one if more than one
