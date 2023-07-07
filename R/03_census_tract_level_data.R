@@ -18,8 +18,9 @@ hh_acs_2019 <-
 
 d <-
   left_join(d,
-          select(hh_acs_2019, -year, -census_tract_vintage),
-          by = c("census_tract_id_2010" = "census_tract_id"))
+    select(hh_acs_2019, -year, -census_tract_vintage),
+    by = c("census_tract_id_2010" = "census_tract_id")
+  )
 
 # AGS crime risk
 ags_crime_risk <- read_tdr_csv("https://github.com/geomarker-io/hamilton_crime_risk/releases/download/v0.1.0")
@@ -27,4 +28,3 @@ d <- d |> left_join(ags_crime_risk, by = c("census_tract_id_2010" = "census_trac
 
 # save
 saveRDS(d, "data/census_tract_level_data.rds")
-

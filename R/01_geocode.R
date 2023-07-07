@@ -8,7 +8,7 @@ set.seed(11)
 d <- sample_n(d, 2000)
 
 # geocode
-d <- d |> 
+d <- d |>
   rename(address = parsed_address) |>
   dht::degauss_run("geocoder", "3.3.0", quiet = FALSE) |>
   rename(parsed_address = address) |>

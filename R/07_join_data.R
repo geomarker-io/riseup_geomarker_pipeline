@@ -5,16 +5,21 @@ library(readr)
 
 d <- readRDS("data/geocodes.rds")
 
-n.admission = dim(d)[1]
-n.address = d |> filter(!duplicated(d$parsed_address)) |> nrow()
-n.geocoded = d |> filter(!duplicated(d$parsed_address)) |> filter(geocode_result == "geocoded") |> nrow()
+n.admission <- dim(d)[1]
+n.address <- d |>
+  filter(!duplicated(d$parsed_address)) |>
+  nrow()
+n.geocoded <- d |>
+  filter(!duplicated(d$parsed_address)) |>
+  filter(geocode_result == "geocoded") |>
+  nrow()
 
-n.geocoded.hc = 
-  d |> 
-  filter(!duplicated(d$parsed_address)) |> 
-  filter(geocode_result == "geocoded") |> 
+n.geocoded.hc <-
+  d |>
+  filter(!duplicated(d$parsed_address)) |>
+  filter(geocode_result == "geocoded") |>
   mutate(zip = stringr::str_sub(parsed_address, -5)) |>
-  filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |> 
+  filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |>
   nrow()
 
 if (fs::file_exists("data/exact_location_geomarkers.rds")) {
@@ -29,11 +34,11 @@ if (fs::file_exists("data/census_tract_level_data.rds")) {
 
 if (fs::file_exists("data/parcel_data.rds")) {
   parcel <- readRDS("data/parcel_data.rds")
-  n.parcel = parcel |> 
+  n.parcel <- parcel |>
     filter(!duplicated(parsed_address)) |>
-    filter(!is.na(parcel_id)) |> 
+    filter(!is.na(parcel_id)) |>
     mutate(zip = stringr::str_sub(parsed_address, -5)) |>
-    filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |> 
+    filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |>
     nrow()
   d <- left_join(d, parcel)
 }
@@ -65,17 +70,17 @@ message(
   scales::number(n.address, big.mark = ","),
   " (", scales::percent(n.address / n.admission), ")",
   " unique addresses; \n",
-  scales::number(n.geocoded, big.mark = ","), " of ", 
+  scales::number(n.geocoded, big.mark = ","), " of ",
   scales::number(n.address, big.mark = ","),
   " (", scales::percent(n.geocoded / n.address), ")",
   " unique addresses are geocoded; \n",
-  scales::number(n.geocoded.hc, big.mark = ","), " of ", 
+  scales::number(n.geocoded.hc, big.mark = ","), " of ",
   scales::number(n.geocoded, big.mark = ","),
   " (", scales::percent(n.geocoded.hc / n.geocoded), ")",
   " geocoded unique addresses are Hamilton county addresses; and \n",
-  scales::number(n.parcel, big.mark = ","), " of ", 
+  scales::number(n.parcel, big.mark = ","), " of ",
   scales::number(n.geocoded.hc, big.mark = ","),
-  " (", scales::percent(n.parcel / n.geocoded.hc),")",
+  " (", scales::percent(n.parcel / n.geocoded.hc), ")",
   " geocoded Hamilton addresses are matched to one or more parcel IDs."
 )
 
@@ -91,5 +96,5 @@ d |>
 d |>
   filter(!is.na(parcel_id)) # 40,980
 
-40980/63247
+40980 / 63247
 # 65% addresses with hc ZIP are matched to a parcel
