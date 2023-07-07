@@ -1,6 +1,6 @@
 library(dplyr)
 library(dht)
-library(CODECtools)
+library(codec)
 
 d <- readRDS("data/geocodes.rds")
 
@@ -23,34 +23,6 @@ d <- d |>
 
 # add column attributes
 d <- d |>
-  add_col_attrs(parsed_address,
-    title = "Parsed Address",
-    description = "parsed address"
-  ) |>
-  add_col_attrs(lat,
-    title = "Latitude",
-    description = "geocoded latitude coordinate"
-  ) |>
-  add_col_attrs(lon,
-    title = "Longitude",
-    description = "geocoded longitude coordinate"
-  ) |>
-  add_col_attrs(geocode_result,
-    title = "Geocode Result",
-    description = "character string summarizing the geocoding result (geocoded: the address was geocoded with a precision of either range or street and a score of 0.5 or greater; imprecise_geocode: the address was geocoded, but results were suppressed because the precision was intersection, zip, or city and/or the score was less than 0.5; po_box: the address was not geocoded because it is a PO Box; cincy_inst_foster_addr: the address was not geocoded because it is a known institutional address, not a residential address; non_address_text: the address was not geocoded because it was blank or listed as “foreign”, “verify”, or “unknown”)"
-  ) |>
-  add_col_attrs(census_block_group_id_2010,
-    title = "2010 Census Block Group ID"
-  ) |>
-  add_col_attrs(census_tract_id_2010,
-    title = "2010 Census Tract ID"
-  ) |>
-  add_col_attrs(census_block_group_id_2020,
-    title = "2020 Census Block Group ID"
-  ) |>
-  add_col_attrs(census_tract_id_2020,
-    title = "2020 Census Tract ID"
-  ) |>
   add_col_attrs(dist_to_1100,
     title = "Distance to Nearest Primary Road",
     description = "distance (meters) to the nearest S1100 road"
