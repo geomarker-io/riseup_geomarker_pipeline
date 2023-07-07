@@ -9,4 +9,3 @@ d |>
   CODECtools::glimpse_tdr() |>
   knitr::kable() |>
   cat(file = "metadata.md", sep = "\n", append = TRUE)
-

@@ -1,25 +1,35 @@
 library(parcel)
-library(CODECtools)
+library(dplyr)
 
 d <- readRDS("data/geocodes.rds")
 
-d <- d |>
-  rename(address = parsed_address) |>
-  add_parcel_id() |>
-  tidyr::unnest(cols = c(parcel_id))
+parcel_links <-
+  d$parsed_address |>
+  unique() |>
+  link_parcel() |>
+  filter(
+    !is.na(parcel_id),
+    land_use != "residential vacant land"
+  )
+left_join(
+  codec::read_tdr_csv(fs::path_package("parcel", "cagis_parcels")),
+  join_by(parcel_id)
+) |>
+  nest_by(input_address, .key = "parcel_data")
 
-fs::dir_create("data-raw/hamilton_parcels")
-write_csv(cagis_parcels, "data-raw/hamilton_parcels/hamilton_parcels.csv")
+d_parcel <-
+  left_join(d,
+    parcel_links,
+    by = join_by(parsed_address == input_address),
+    relationship = "many-to-many"
+  )
 
-download.file("https://raw.githubusercontent.com/geomarker-io/parcel/main/data-raw/tabular-data-resource.yaml",
-              destfile = "data-raw/hamilton_parcels/tabular-data-resource.yaml")
-
-cagis_parcels <- read_tdr_csv("data-raw/hamilton_parcels")
-
-d <- d |>
-  dplyr::left_join(cagis_parcels, by = "parcel_id")
+# TODO filter to one parcel per address
+# for now, randomly sample one if more than one
+# future code should consider logic for selecting *which* is best one to choose
+d_out <-
+  tidyr::unnest(d_parcel, parcel_data, keep_empty = TRUE) |>
+  slice_sample(n = 1, by = PAT_ENC_CSN_ID)
 
 # save
-saveRDS(d, "data/parcel_data.rds")
-
-
+saveRDS(d_out, "data/parcel.rds")

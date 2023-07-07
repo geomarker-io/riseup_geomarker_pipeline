@@ -1,6 +1,6 @@
 ## RISEUP Geomarker Pipeline
 
-This group of R scripts is used to create a dataset by compiling geospatial data from multiple data sources at census tract level and parcel level.
+This code is used to append place- and date- based geomarker data from multiple data sources at multiple geographic and temporal resolutions, with a specific focus on Hamilton County, Ohio:
 
 ```mermaid
 %%{init: { "fontFamily": "arial" } }%%
@@ -40,14 +40,7 @@ parcel --parcel id join \n on ---> parcel_data(tax auditor databases,\nhousing c
 - [National Land Cover Database (NLCD)](https://www.usgs.gov/centers/eros/science/national-land-cover-database)
 - [Cincinnati Area Geographic Information System (CAGIS) Parcel Data](https://data-cagisportal.opendata.arcgis.com/)
 
-### Note
-- Addresses used for geocoding were created based on variables, "pat_addr_1", "pat_city", "pat_state", "pat_zip", in the current dataset.
+### Data Notes
 
-- 2019 5-Year ACS Data (2014-19) was used.
-
-- AGS Crime Risk and CAGIS parcel data included in the dataset are available for Hamilton county only.
-
-### Creating Month-Race-Tract Data
-
-`scripts/aggregate_admissions_data.R` takes in the geocoded data and produces a summary of admissions by month, race (Black or African American vs. Other), and census tract.
-
+- Patient address was constructed by pasting together `pat_addr_1`, `pat_city`, `pat_state`, `pat_zip`
+- All Harmonized Historial ACS Measures are from 2019 (but this could be changed)
