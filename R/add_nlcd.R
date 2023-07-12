@@ -1,19 +1,15 @@
-.cran_packages <- c("sf", "s3", "terra")
-.inst <- .cran_packages %in% installed.packages()
-if (any(!.inst)) {
-  install.packages(.cran_packages[!.inst], repos = "http://cran.us.r-project.org")
-}
 
 library(tidyverse)
 library(dht)
 library(sf)
 library(CODECtools)
+library(terra)
 
-d <- readRDS("data/addresses_geocoded.rds")
+d <- readRDS("data/geocodes.rds")
 
 # make buffers around points
 d.point <- d |>
-  select(PAT_ENC_CSN_ID, lat, lon) |>
+  select(PAT_ENC_CSN_ID, lat, lon) %>%
   filter(complete.cases(.)) |> # keep geocoded ones
   distinct(.keep_all = TRUE) # remove duplicated records while adding parcel ID
 
@@ -31,19 +27,35 @@ d.buffered <- d.point |>
 
 d.buffered <- terra::vect(d.buffered)
 
-# impervious
-if (file.exists("rasters/impervious_hv_2019.tif")) {
-  impervious_hv_2019 <- terra::rast("rasters/impervious_hv_2019.tif")
-} else {
-  hv <- cincy::county_hlthv_2010 |>
-    st_union()
+## Download raster file
+options(timeout = 3000)
+download_dir <- fs::path_wd("nlcd_downloads")
+dir.create(download_dir, showWarnings = FALSE)
 
-  impervious_tif <- s3::s3_get("s3://geomarker/nlcd_cog/nlcd_impervious_2019.tif")
-  impervious <- terra::rast(impervious_tif)
-  impervious_hv_2019 <- terra::crop(impervious, hv)
-  terra::writeRaster(impervious_hv_2019, "rasters/impervious_hv_2019.tif")
-  fs::dir_delete("s3_downloads")
+# impervious
+download_impervious <- function(yr = 2019) {
+  nlcd_file_path <- fs::path(download_dir, glue::glue("nlcd_impervious_{yr}.tif"))
+  if (file.exists(nlcd_file_path)) return(nlcd_file_path)
+  withr::with_tempdir({
+    download.file(glue::glue("https://s3-us-west-2.amazonaws.com/mrlc/nlcd_{yr}_impervious_l48_20210604.zip"),
+                  destfile = glue::glue("nlcd_impervious_{yr}.zip"))
+    unzip(glue::glue("nlcd_impervious_{yr}.zip"))
+    system2(
+      "gdal_translate",
+      c(
+        "-of COG",
+        glue::glue("nlcd_{yr}_impervious_l48_20210604.img"),
+        shQuote(fs::path(download_dir, glue::glue("nlcd_impervious_{yr}.tif")))
+      )
+    )
+  })
+  return(nlcd_file_path)
 }
+
+impervious_raster <- download_impervious(yr=2019) |> rast()
+
+hv <- cincy::county_hlthv_2010 |> st_union()
+impervious_hv_2019 <- terra::crop(impervious_raster, hv)
 
 pct_impervious <-
   terra::extract(impervious_hv_2019,
@@ -58,33 +70,45 @@ d.pct_impervious <- bind_cols(d.point, pct_impervious) |>
   st_drop_geometry()
 
 # tree canopy
-if (file.exists("rasters/treecanopy_hv_2016.tif")) {
-  treecanopy_hv_2016 <- terra::rast("rasters/treecanopy_hv_2016.tif")
-} else {
-  hv <- cincy::county_hlthv_2010 |>
-    st_union()
-
-  tree_tif <- s3::s3_get("s3://geomarker/nlcd_cog/nlcd_treecanopy_2016.tif")
-  treecanopy <- terra::rast(tree_tif)
-  treecanopy_hv_2016 <- terra::crop(treecanopy, hv)
-  terra::writeRaster(treecanopy_hv_2016, "rasters/treecanopy_hv_2016.tif")
-  fs::dir_delete("s3_downloads")
+download_treecanopy <- function(yr = 2019) {
+  nlcd_file_path <- fs::path(download_dir, glue::glue("nlcd_treecanopy_{yr}.tif"))
+  if (file.exists(nlcd_file_path)) return(nlcd_file_path)
+  withr::with_tempdir({
+    download.file(glue::glue("https://s3-us-west-2.amazonaws.com/mrlc/nlcd_tcc_CONUS_{yr}_v2021-4.zip"),
+                  destfile = glue::glue("nlcd_treecanopy_{yr}.zip"))
+    unzip(glue::glue("nlcd_treecanopy_{yr}.zip"))
+    system2(
+      "gdal_translate",
+      c(
+        "-of COG",
+        "-co BIGTIFF=YES",
+        glue::glue("nlcd_tcc_conus_{yr}_v2021-4.tif"),
+        shQuote(fs::path(download_dir, glue::glue("nlcd_treecanopy_{yr}.tif")))
+      )
+    )
+  })
+  return(nlcd_file_path)
 }
 
+treecanopy_raster <- download_treecanopy(yr=2019) |> rast()
+
+hv <- cincy::county_hlthv_2010 |> st_union()
+treecanopy_hv_2019 <- terra::crop(treecanopy_raster, hv)
+
 pct_treecanopy <-
-  terra::extract(treecanopy_hv_2016,
+  terra::extract(treecanopy_hv_2019,
     d.buffered,
     fun = "mean"
   ) |>
   rename(value = Layer_1) |>
-  summarize(pct_treecanopy_2016 = round(value))
+  summarize(pct_treecanopy_2019 = round(value))
 
 d.pct_treecanopy <- bind_cols(d.point, pct_treecanopy) |>
   unnest(PAT_ENC_CSN_ID) |>
   st_drop_geometry()
 
 # merge
-d.nlcd <- d.pct_impervious |>
+d <- d.pct_impervious |>
   left_join(d.pct_treecanopy, by = "PAT_ENC_CSN_ID")
 
 # add column attributes
@@ -93,9 +117,12 @@ d <- d |>
     title = "percentage impervious",
     description = "average percent impervious of all nlcd cells overlapping the buffer"
   ) |>
-  add_col_attrs(pct_treecanopy_2016,
+  add_col_attrs(pct_treecanopy_2019,
     title = "percentage treecanopy",
     description = "average percent tree canopy cover of all nlcd cells overlapping the buffer"
   )
 
-saveRDS(d.nlcd, "data/nlcd.rds")
+saveRDS(d, "data/nlcd.rds")
+
+
+
