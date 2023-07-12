@@ -1,101 +1,97 @@
-.cran_packages <- c("sf", "s3", "terra")
-.inst <- .cran_packages %in% installed.packages()
-if (any(!.inst)) {
-  install.packages(.cran_packages[!.inst], repos = "http://cran.us.r-project.org")
-}
-
-library(tidyverse)
+## library(tidyverse)
+library(dplyr)
 library(dht)
 library(sf)
-library(CODECtools)
+library(codec)
+library(terra)
 
-d <- readRDS("data/addresses_geocoded.rds")
+# options for downloaded rasters
+options(timeout = 3000)
+download_dir <- fs::path_wd("nlcd_downloads")
+dir.create(download_dir, showWarnings = FALSE)
 
-# make buffers around points
-d.point <- d |>
+d <- readRDS("data/geocodes.rds")
+
+d_vect <-
+  d |>
   select(PAT_ENC_CSN_ID, lat, lon) |>
-  filter(complete.cases(.)) |> # keep geocoded ones
-  distinct(.keep_all = TRUE) # remove duplicated records while adding parcel ID
-
-d.point <-
-  d.point |>
-  dplyr::select(PAT_ENC_CSN_ID, lat, lon) |>
-  stats::na.omit() |>
-  tidyr::nest(PAT_ENC_CSN_ID = c(PAT_ENC_CSN_ID)) |>
-  sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
-
-# project to 5072 for buffering in meters
-d.buffered <- d.point |>
-  sf::st_transform(5072) |>
-  sf::st_buffer(dist = 400)
-
-d.buffered <- terra::vect(d.buffered)
+  na.omit() |>
+  distinct(.keep_all = TRUE) |>
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+  st_transform(5072) |>
+  st_buffer(dist = 400) |>
+  vect()
 
 # impervious
-if (file.exists("rasters/impervious_hv_2019.tif")) {
-  impervious_hv_2019 <- terra::rast("rasters/impervious_hv_2019.tif")
-} else {
-  hv <- cincy::county_hlthv_2010 |>
-    st_union()
-
-  impervious_tif <- s3::s3_get("s3://geomarker/nlcd_cog/nlcd_impervious_2019.tif")
-  impervious <- terra::rast(impervious_tif)
-  impervious_hv_2019 <- terra::crop(impervious, hv)
-  terra::writeRaster(impervious_hv_2019, "rasters/impervious_hv_2019.tif")
-  fs::dir_delete("s3_downloads")
+download_impervious <- function(yr = 2019) {
+  nlcd_file_path <- fs::path(download_dir, glue::glue("nlcd_impervious_{yr}.tif"))
+  if (file.exists(nlcd_file_path)) {
+    return(nlcd_file_path)
+  }
+  withr::with_tempdir({
+    download.file(glue::glue("https://s3-us-west-2.amazonaws.com/mrlc/nlcd_{yr}_impervious_l48_20210604.zip"),
+      destfile = glue::glue("nlcd_impervious_{yr}.zip")
+    )
+    unzip(glue::glue("nlcd_impervious_{yr}.zip"))
+    system2(
+      "gdal_translate",
+      c(
+        "-of COG",
+        glue::glue("nlcd_{yr}_impervious_l48_20210604.img"),
+        shQuote(fs::path(download_dir, glue::glue("nlcd_impervious_{yr}.tif")))
+      )
+    )
+  })
+  return(nlcd_file_path)
 }
 
-pct_impervious <-
-  terra::extract(impervious_hv_2019,
-    d.buffered,
-    fun = "mean"
-  ) |>
-  rename(value = Layer_1) |>
-  summarize(pct_impervious_2019 = round(value))
+impervious_raster <- download_impervious(yr = 2019) |> rast()
+hv <- cincy::county_hlthv_2010 |> st_union()
+impervious_hv_2019 <- terra::crop(impervious_raster, hv)
 
-d.pct_impervious <- bind_cols(d.point, pct_impervious) |>
-  unnest(PAT_ENC_CSN_ID) |>
-  st_drop_geometry()
+xx <- terra::extract(impervious_hv_2019, d_vect, fun = "mean", ID = FALSE)
+d_vect$pct_impervious_2019 <- round(xx[, "Layer_1"])
 
 # tree canopy
-if (file.exists("rasters/treecanopy_hv_2016.tif")) {
-  treecanopy_hv_2016 <- terra::rast("rasters/treecanopy_hv_2016.tif")
-} else {
-  hv <- cincy::county_hlthv_2010 |>
-    st_union()
-
-  tree_tif <- s3::s3_get("s3://geomarker/nlcd_cog/nlcd_treecanopy_2016.tif")
-  treecanopy <- terra::rast(tree_tif)
-  treecanopy_hv_2016 <- terra::crop(treecanopy, hv)
-  terra::writeRaster(treecanopy_hv_2016, "rasters/treecanopy_hv_2016.tif")
-  fs::dir_delete("s3_downloads")
+download_treecanopy <- function(yr = 2019) {
+  nlcd_file_path <- fs::path(download_dir, glue::glue("nlcd_treecanopy_{yr}.tif"))
+  if (file.exists(nlcd_file_path)) {
+    return(nlcd_file_path)
+  }
+  withr::with_tempdir({
+    download.file(glue::glue("https://s3-us-west-2.amazonaws.com/mrlc/nlcd_tcc_CONUS_{yr}_v2021-4.zip"),
+      destfile = glue::glue("nlcd_treecanopy_{yr}.zip")
+    )
+    unzip(glue::glue("nlcd_treecanopy_{yr}.zip"))
+    system2(
+      "gdal_translate",
+      c(
+        "-of COG",
+        "-co BIGTIFF=YES",
+        glue::glue("nlcd_tcc_conus_{yr}_v2021-4.tif"),
+        shQuote(fs::path(download_dir, glue::glue("nlcd_treecanopy_{yr}.tif")))
+      )
+    )
+  })
+  return(nlcd_file_path)
 }
 
-pct_treecanopy <-
-  terra::extract(treecanopy_hv_2016,
-    d.buffered,
-    fun = "mean"
-  ) |>
-  rename(value = Layer_1) |>
-  summarize(pct_treecanopy_2016 = round(value))
+treecanopy_raster <- download_treecanopy(yr = 2019) |> rast()
+hv <- cincy::county_hlthv_2010 |> st_union()
+treecanopy_hv_2019 <- terra::crop(treecanopy_raster, hv)
 
-d.pct_treecanopy <- bind_cols(d.point, pct_treecanopy) |>
-  unnest(PAT_ENC_CSN_ID) |>
-  st_drop_geometry()
+xx <- terra::extract(treecanopy_hv_2019, d_vect, fun = "mean", ID = FALSE)
+d_vect$pct_treecanopy_2019 <- round(xx[, "Layer_1"])
 
-# merge
-d.nlcd <- d.pct_impervious |>
-  left_join(d.pct_treecanopy, by = "PAT_ENC_CSN_ID")
-
-# add column attributes
 d <- d |>
+  left_join(as_tibble(d_vect), by = "PAT_ENC_CSN_ID") |>
   add_col_attrs(pct_impervious_2019,
-    title = "percentage impervious",
-    description = "average percent impervious of all nlcd cells overlapping the buffer"
+    title = "Percentage Impervious",
+    description = "Average percent impervious of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
   ) |>
-  add_col_attrs(pct_treecanopy_2016,
+  add_col_attrs(pct_treecanopy_2019,
     title = "percentage treecanopy",
-    description = "average percent tree canopy cover of all nlcd cells overlapping the buffer"
+    description = "Average percent treecanopy of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
   )
 
-saveRDS(d.nlcd, "data/nlcd.rds")
+saveRDS(d, "data/nlcd.rds")
