@@ -1,5 +1,5 @@
 library(dplyr)
-library(CODECtools)
+library(codec)
 library(cincy)
 
 d <- readRDS("data/geocodes.rds")
