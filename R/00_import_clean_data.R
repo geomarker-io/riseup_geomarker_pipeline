@@ -43,9 +43,6 @@ d <-
   dht::degauss_run("postal", "0.1.4", quiet = FALSE) |>
   rename(raw_address = address)
 
-# Hamilton county flag
-d <- mutate(d, hamilton_zip = parsed.postcode_five %in% cincy::zcta_tigris_2020)
-
 fs::dir_create("data")
 d |>
   select(-starts_with("parsed."), -cleaned_address) |>
