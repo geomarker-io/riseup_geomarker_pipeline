@@ -36,14 +36,11 @@ d <- d |>
     sep = " ", na.rm = TRUE
   )
 
-# clean and parse addresses with postal
-d <-
-  d |>
-  rename(address = raw_address) |>
-  dht::degauss_run("postal", "0.1.4", quiet = FALSE) |>
-  rename(raw_address = address)
+# clean and parse out unnecessary address components with parcel
+d <- d |>
+  mutate(address_tags = purrr::map(raw_address, parcel::tag_address, .progress = "tagging addresses")) |>
+  tidyr::unnest(cols = address_tags) |>
+  tidyr::unite("address", street_number, street_name, city, state, zip_code, remove = TRUE, na.rm = FALSE, sep = " ")
 
 fs::dir_create("data")
-d |>
-  select(-starts_with("parsed."), -cleaned_address) |>
-  saveRDS("data/cleaned_addresses.rds")
+saveRDS(d, "data/cleaned_addresses.rds")
