@@ -7,11 +7,8 @@ d <- readRDS("data/cleaned_addresses.rds")
 d_out <- d |> bind_cols(get_parcel_data(d$address))
 
 # housing violation data
-# d.violation.in <- readxl::read_excel("data-raw/Violations Likley Related to Lead, Asthma, and Mental Health from 2002 to date.xlsx")
-# write_csv(d.violation.in, "data-raw/Violations_Likley_Related_to_Lead_Asthma_and_Mental_Health_2002to2022.csv")
+d.violation <- readxl::read_excel("dataset/Violations Likley Related to Lead, Asthma, and Mental Health from 2002 to date.xlsx")
 
-d.violation <- read.csv("https://raw.githubusercontent.com/geomarker-io/riseup_geomarker_pipeline/main/data/Violations_Likley_Related_to_Lead_Asthma_and_Mental_Health_2002to2022.csv?token=GHSAT0AAAAAACFK6OLNLC2FBB7U3TOYWA52ZFZQ55Q")
-  
 # use violation data two years before the earliest admission date (1-1-2016)
 d.violation <- 
   d.violation |> 
