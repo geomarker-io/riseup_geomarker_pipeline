@@ -22,7 +22,13 @@ d_out <-
   d_out |> 
   mutate(parcel_id11 = substr(parcel_id, 1, 11)) |>   # first 11 digit of parcel id
   left_join(d.violation, by = join_by(parcel_id11)) |> 
-  mutate(any_housing_violation = (!is.na(n_violation))) |> 
+  mutate(
+    any_housing_violation = case_when(
+      !is.na(n_violation) ~ TRUE,
+      is.na(n_violation) & !(parcel_id %in% c(NA, "TIED_MATCHES")) ~ FALSE,
+      parcel_id %in% c(NA, "TIED_MATCHES") ~ NA
+    )
+  ) |> 
   select(-parcel_id11)
 
 d_out <- d_out |> 
