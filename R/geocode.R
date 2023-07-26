@@ -6,21 +6,15 @@ d <- readRDS("data/cleaned_addresses.rds")
 
 # geocode
 d <- d |>
-  rename(address = parsed_address) |>
   dht::degauss_run("geocoder", "3.3.0", quiet = FALSE) |>
-  rename(parsed_address = address) |>
   select(-starts_with("matched_")) |>
   select(-score, -precision)
 
 # add column attributes
 d <- d |>
-  add_col_attrs(parsed_address,
-    title = "Parsed Address",
+  add_col_attrs(address,
+    title = "Address",
     description = "parsed address"
-  ) |>
-  add_col_attrs(hamilton_zip,
-    title = "Hamilton ZIP Code",
-    description = "TRUE if ZIP code was matched to a ZIP code in cincy::zcta_tigris_2020"
   ) |>
   add_col_attrs(lat,
     title = "Latitude",
