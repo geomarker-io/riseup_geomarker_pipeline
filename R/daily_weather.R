@@ -6,9 +6,7 @@ download_weather <- function(var, year) {
   download.file(glue::glue("https://aqs.epa.gov/aqsweb/airdata/daily_{var}_{year}.zip"),
                 destfile = glue::glue("tmp/{var}_{year}.zip")
   )
-  unzip(glue::glue("tmp/{var}_{year}.zip"), exdir = "tmp")
-  unlink(glue::glue("tmp/{var}_{year}.zip"))
-  read_csv(glue::glue("tmp/daily_{var}_{year}.csv")) |>
+  read_csv(glue::glue("tmp/{var}_{year}.zip")) |>
     filter(
       `State Code` == "39",
       `County Code` == "061",
@@ -22,9 +20,11 @@ download_weather <- function(var, year) {
 }
 
 var <- c("WIND", "TEMP", "RH_DP")
-plan <- expand_grid(var, year)
+year <- 2015:2022
+plan <- tidyr::expand_grid(var, year)
 
 message("downloading weather data...")
+dir.create("tmp", showWarnings = FALSE)
 weather <- purrr::map2_dfr(plan$var, plan$year, download_weather)
 
 weather <- weather |>
