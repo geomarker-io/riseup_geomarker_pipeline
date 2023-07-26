@@ -1,11 +1,4 @@
-*.gdb
-data-raw/HamParcels.gdb*
-hamilton_parcels.csv
-hamilton_parcels.gpkg
-hamilton_parcels.rds
 .Rproj.user
 data/
-raw-data/
 geocoding_cache/
 .DS_Store
-/data-raw/

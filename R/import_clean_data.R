@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 
 # read in raw admission data
-d <- read_csv("data-raw/HospitalAdmissions.csv",
+d <- read_csv("data/HospitalAdmissions.csv",
   na = c("NA", "-", "NULL"),
   col_types = cols_only(
     PAT_MRN_ID = col_character(),
