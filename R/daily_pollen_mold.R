@@ -2,6 +2,7 @@ library(dplyr)
 library(codec)
 
 message("downloading pollen and mold data...")
+dir.create("tmp", showWarnings = FALSE)
 download.file("https://southwestohioair.org/DocumentCenter/View/447",
               destfile = "tmp/pollen_mold_2021.xlsx"
 )
