@@ -4,17 +4,17 @@ library(codec)
 message("downloading pollen and mold data...")
 dir.create("tmp", showWarnings = FALSE)
 download.file("https://southwestohioair.org/DocumentCenter/View/447",
-              destfile = "tmp/pollen_mold_2021.xlsx"
+  destfile = "tmp/pollen_mold_2021.xlsx"
 )
 
 download.file("https://www.southwestohioair.org/DocumentCenter/View/564/2022-Raw-Daily-Counts",
-              destfile = "tmp/pollen_mold_2022.xlsx"
+  destfile = "tmp/pollen_mold_2022.xlsx"
 )
 
 clean_pollen_mold <- function(path) {
   d <- readxl::read_excel(path,
-                          sheet = 1,
-                          col_names = FALSE
+    sheet = 1,
+    col_names = FALSE
   )
   d <- t(d)
   d <- tibble::as_tibble(d, .name_repair = "unique")
@@ -49,21 +49,21 @@ d_mold_calculations <- select(d_2021, 1, 85:108) |>
   filter(!is.na(date))
 
 d_pollen_mold <- left_join(d_pollen_calculations,
-                           d_mold_calculations,
-                           by = "date"
+  d_mold_calculations,
+  by = "date"
 ) |>
   mutate(date = as.Date(date)) |>
   add_col_attrs(date,
-                title = "Date",
-                description = "Date"
+    title = "Date",
+    description = "Date"
   ) |>
   add_col_attrs(pollen_total,
-                title = "Pollen Score",
-                description = "Pollen count (grains/cubic meter) * pollen factor"
+    title = "Pollen Score",
+    description = "Pollen count (grains/cubic meter) * pollen factor"
   ) |>
   add_col_attrs(outdoor_mold_total,
-                title = "Outdoor Mold Score",
-                description = "Outdoor mold count (spores/cubic meter) * mold factor"
+    title = "Outdoor Mold Score",
+    description = "Outdoor mold count (spores/cubic meter) * mold factor"
   )
 
 saveRDS(d_pollen_mold, "data-raw/daily_pollen_mold.rds")
