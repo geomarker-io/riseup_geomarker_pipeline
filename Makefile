@@ -1,16 +1,21 @@
-.PHONY: daily clean geocode tract geomark nlcd parcel all
+.PHONY: daily daily_data clean geocode tract geomark nlcd parcel all
 
 all: daily clean geocode tract geomark nlcd parcel
-daily: data-raw/daily_aqi.rds data-raw/daily_pollen_mold.rds data-raw/daily_weather.rds
+
 clean: data/cleaned_addresses.rds
 geocode: data/geocodes.rds
 tract: data/census_tract_level_data.rds
 geomark: data/exact_location_geomarkers.rds
 nlcd: data/nlcd.rds
 parcel: data/parcel.rds
+daily: data/daily.rds 
 
+daily_data: data-raw/daily_aqi.rds data-raw/daily_pollen_mold.rds data-raw/daily_weather.rds
+
+data/daily.rds: R/daily.R data/cleaned_addresses.rds daily_data
+	Rscript R/daily.R
 data-raw/daily_aqi.rds: data-raw/daily_aqi.R
-		Rscript data-raw/daily_aqi.R
+	Rscript data-raw/daily_aqi.R
 
 data-raw/daily_pollen_mold.rds: data-raw/daily_pollen_mold.R
 	Rscript data-raw/daily_pollen_mold.R
