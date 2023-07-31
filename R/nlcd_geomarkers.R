@@ -1,11 +1,7 @@
 library(dplyr)
-## library(dht)
 library(sf)
 library(codec)
 library(terra)
-
-# options for downloaded rasters
-options(timeout = 3000)
 
 d <- readRDS("data/geocodes.rds")
 
@@ -24,29 +20,35 @@ source("data-raw/nlcd.R")
 # will save to:
 tools::R_user_dir("s3", "data")
 
-impervious_raster <- download_impervious(yr = 2019) |> rast()
-hv <- cincy::county_hlthv_2010 |> st_union()
-impervious_hv_2019 <- terra::crop(impervious_raster, hv)
+roi <- cincy::county_hlthv_2010 |> st_union()
 
-xx <- terra::extract(impervious_hv_2019, d_vect, fun = "mean", ID = FALSE)
-d_vect$pct_impervious_2019 <- round(xx[, "Layer_1"])
+impervious_raster <-
+  get_impervious(yr = 2019) |>
+  rast() |>
+  terra::crop(roi) # projection issues?????
 
-treecanopy_raster <- download_treecanopy(yr = 2019) |> rast()
-hv <- cincy::county_hlthv_2010 |> st_union()
-treecanopy_hv_2019 <- terra::crop(treecanopy_raster, hv)
+d_vect$pct_impervious_2019 <-
+  terra::extract(impervious_raster, d_vect, fun = "mean", ID = FALSE)[ , "Layer_1"] |>
+  round(2)
 
-xx <- terra::extract(treecanopy_hv_2019, d_vect, fun = "mean", ID = FALSE)
-d_vect$pct_treecanopy_2019 <- round(xx[, "Layer_1"])
+treecanopy_raster <-
+  get_treecanopy(yr = 2019) |>
+  rast() |>
+  terra::crop(roi) # projection issues?????
+
+d_vect$pct_treecanopy_2019 <-
+  terra::extract(treecanopy_raster, d_vect, fun = "mean", ID = FALSE)[ , "Layer_1"] |>
+  round(2)
 
 d <- d |>
   left_join(as_tibble(d_vect), by = "PAT_ENC_CSN_ID") |>
   add_col_attrs(pct_impervious_2019,
     title = "Imperviousness (%)",
-    description = "Average percent impervious of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
+    description = "2019 Average percent impervious of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
   ) |>
   add_col_attrs(pct_treecanopy_2019,
     title = "Tree Canopy (%)",
-    description = "Average percent treecanopy of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
+    description = "2019 Average percent treecanopy of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
   )
 
 saveRDS(d, "data/nlcd.rds")
