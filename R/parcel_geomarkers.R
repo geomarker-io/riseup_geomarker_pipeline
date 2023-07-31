@@ -7,21 +7,19 @@ d <- readRDS("data/cleaned_addresses.rds")
 d_out <- d |> bind_cols(get_parcel_data(d$address))
 
 # housing violation data
-d.violation <- readxl::read_excel("dataset/Violations Likley Related to Lead, Asthma, and Mental Health from 2002 to date.xlsx")
-
-# use violation data two years before the earliest admission date (1-1-2016)
-d.violation <-
-  d.violation |>
-  filter(ISSUED >= as.Date("2014-01-01") & ISSUED <= as.Date("2021-12-31")) |>
+d_violation <-
+  fs::path("data-raw", "Violations Likley Related to Lead, Asthma, and Mental Health from 2002 to date.xlsx") |>
+  readxl::read_excel() |>
+  filter(as.Date(ISSUED) >= as.Date("2014-01-01") & as.Date(ISSUED) <= as.Date("2021-12-31")) |>
   mutate(parcel_id11 = substr(PARCEL_NO, 2, 12)) |> # removing one extra zero
   group_by(parcel_id11) |>
-  summarize(n_housing_violation = n())
+  summarize(n_violation = n())
 
 # merge with admission data
 d_out <-
   d_out |>
   mutate(parcel_id11 = substr(parcel_id, 1, 11)) |> # first 11 digit of parcel id
-  left_join(d.violation, by = join_by(parcel_id11)) |>
+  left_join(d_violation, by = join_by(parcel_id11)) |>
   mutate(
     any_housing_violation = case_when(
       !is.na(n_violation) ~ TRUE,
