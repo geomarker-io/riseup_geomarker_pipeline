@@ -64,8 +64,8 @@ parcel --parcel id join \n on ---> parcel_data(tax auditor databases,\nhousing c
 ### Running
 
 1. Clone github repository to destination; manually move input health data into place (`data/HospitalAdmissions.csv`)
-2. Install all packages from DESCRIPTION file by running `pak::pak()` in the project root
-3. Install required python libraries:
+2. Install all packages from DESCRIPTION file by running `pak::pak()` in the project root from R. (If you are on a linux machine, it may speed up installation to use binaries hosted by Posit, by setting `options("repos" = c("CRAN" = "https://packagemanager.rstudio.com/all/__linux__/focal/latest"))`, substituting `focal` for your specific linux version.)
+3. Install required python libraries. (Use `reticulate::py_config()` to check on available python environments):
 
 ```R
 reticulate::py_install("usaddress", pip = TRUE)
