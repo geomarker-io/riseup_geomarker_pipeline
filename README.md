@@ -60,3 +60,17 @@ parcel --parcel id join \n on ---> parcel_data(tax auditor databases,\nhousing c
 - `/data` is for any output data associated with a participant *and/or* the raw hospital admissions file; this entire directory will always be git ignored
 - `/data-raw` is for raw (e.g., violations spreadsheet) or intermediate data products (e.g., daily AQI) that are tracked using git
 - `Makefile` defines the pipeline, see high level targets there
+
+### Running
+
+1. Clone github repository to destination; manually move input health data into place (`data/HospitalAdmissions.csv`)
+2. Install all packages from DESCRIPTION file by running `pak::pak()` in the project root
+3. Install required python libraries:
+
+```R
+reticulate::py_install("usaddress", pip = TRUE)
+reticulate::py_install("dedupe", pip = TRUE)
+reticulate::py_install("dedupe-variable-address", pip = TRUE)
+```
+
+4. Use `make` to create targets defined in `Makefile` or `make all` to run all targets. *`docker` is required to run the `geocode` and `geomark` targets.*
