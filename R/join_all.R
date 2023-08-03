@@ -1,52 +1,19 @@
-library(codec)
-library(fs)
 library(dplyr)
-library(readr)
+## library(codec)
+## library(fs)
+## library(readr)
 
-d <- readRDS("data/geocodes.rds")
+guid <- c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")
 
-n.admission <- dim(d)[1]
-n.address <- d |>
-  filter(!duplicated(d$parsed_address)) |>
-  nrow()
-n.geocoded <- d |>
-  filter(!duplicated(d$parsed_address)) |>
-  filter(geocode_result == "geocoded") |>
-  nrow()
+data_names <- c("cleaned_addresses", "geocodes", "daily", "census_tract_level_data",
+                "nlcd", "exact_location_geomarkers", "parcel")
 
-n.geocoded.hc <-
-  d |>
-  filter(!duplicated(d$parsed_address)) |>
-  filter(geocode_result == "geocoded") |>
-  mutate(zip = stringr::str_sub(parsed_address, -5)) |>
-  filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |>
-  nrow()
-
-if (fs::file_exists("data/exact_location_geomarkers.rds")) {
-  exact <- readRDS("data/exact_location_geomarkers.rds")
-  d <- left_join(d, exact)
-}
-
-if (fs::file_exists("data/census_tract_level_data.rds")) {
-  tract <- readRDS("data/census_tract_level_data.rds")
-  d <- left_join(d, tract)
-}
-
-if (fs::file_exists("data/parcel.rds")) {
-  parcel <- readRDS("data/parcel.rds")
-  n.parcel <- parcel |>
-    filter(!duplicated(parsed_address)) |>
-    filter(!is.na(parcel_id)) |>
-    mutate(zip = stringr::str_sub(parsed_address, -5)) |>
-    filter(zip %in% cincy::zcta_tigris_2010$zcta_2010) |>
-    nrow()
-  d <- left_join(d, parcel)
-}
-
-if (fs::file_exists("data/daily_data.rds")) {
-  time <- readRDS("data/daily_data.rds")
-  d <- left_join(d, time, by = c("HOSP_ADMSN_TIME" = "date"))
-}
+d <-
+  fs::path("data", data_names, ext = "rds") |>
+  purrr::map(readRDS, .progress = "reading intermediate targets") |>
+  setNames(data_names) |>
+  purrr::reduce(left_join, by = guid) |>
+  select(-ends_with(c(".x", ".y")))
 
 d <- d |>
   add_attrs(
@@ -57,9 +24,11 @@ d <- d |>
     homepage = "https://github.com/geomarker-io/riseup_geomarker_pipeline",
   )
 
+codec::glimpse_tdr(d)
+
 saveRDS(d, "data/riseup_geomarker_pipeline_output.rds")
 
-codec::write_tdr_csv(d, "data/")
+codec::write_tdr_csv(d, "data")
 
 # summary message
 
