@@ -25,7 +25,7 @@ roi <- cincy::county_hlthv_2010 |> st_union()
 impervious_raster <-
   get_impervious(yr = 2019) |>
   rast() |>
-  terra::crop(roi) # projection issues?????
+  terra::crop(roi)
 
 d_vect$pct_impervious_2019 <-
   terra::extract(impervious_raster, d_vect, fun = "mean", ID = FALSE)[ , "Layer_1"] |>
@@ -34,7 +34,7 @@ d_vect$pct_impervious_2019 <-
 treecanopy_raster <-
   get_treecanopy(yr = 2019) |>
   rast() |>
-  terra::crop(roi) # projection issues?????
+  terra::crop(roi)
 
 d_vect$pct_treecanopy_2019 <-
   terra::extract(treecanopy_raster, d_vect, fun = "mean", ID = FALSE)[ , "Layer_1"] |>
