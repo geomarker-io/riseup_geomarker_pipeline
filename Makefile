@@ -1,6 +1,6 @@
-.PHONY: daily daily_data clean geocode tract geomark nlcd parcel all
+.PHONY: daily daily_data clean geocode tract geomark nlcd parcel all setup
 
-all: daily clean geocode tract geomark nlcd parcel
+all: merge
 
 setup: DESCRIPTION
 	R -e "install.packages('pak')"
@@ -9,14 +9,14 @@ setup: DESCRIPTION
 	R -e "reticulate::py_install('dedupe', pip = TRUE)"
 	R -e "reticulate::py_install('dedupe-variable-address', pip = TRUE)"
 	R -e "pak::pak()"
-clean: data/cleaned_addresses.rds setup
-geocode: data/geocodes.rds setup
-tract: data/census_tract_level_data.rds setup
-geomark: data/exact_location_geomarkers.rds setup
-nlcd: data/nlcd.rds setup
-parcel: data/parcel.rds setup
-daily: data/daily.rds  setup
-merge: data/riseup_geomarker_pipeline_output.rds tabular_data_resource setup
+clean: data/cleaned_addresses.rds
+geocode: data/geocodes.rds
+tract: data/census_tract_level_data.rds
+geomark: data/exact_location_geomarkers.rds
+nlcd: data/nlcd.rds
+parcel: data/parcel.rds
+daily: data/daily.rds
+merge: data/riseup_geomarker_pipeline_output.rds tabular_data_resource
 
 data/riseup_geomarker_pipeline_output.rds: clean geocode tract geomark nlcd parcel daily R/join_all.R
 	Rscript R/join_all.R
