@@ -73,5 +73,5 @@ reticulate::py_install("dedupe", pip = TRUE)
 reticulate::py_install("dedupe-variable-address", pip = TRUE)
 ```
 
-4. Use `make` to create targets defined in `Makefile` or `make all` to run all targets. *`docker` is required to run the `geocode` and `geomark` targets.*
+4. Use `make` to create targets defined in `Makefile` or `make tdr` to create the final output as a tabular data resource. *`docker` is required to run the `geocode` and `geomark` targets.*
 

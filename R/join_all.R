@@ -15,11 +15,11 @@ d <-
 
 d <- d |>
   add_attrs(
-    name = "riseup_geomarker_pipeline_output",
-    version = "1.0.0",
-    title = "RISEUP Geomarkers",
-    description = "Hosptial admission data joined with geomarkers",
-    homepage = "https://github.com/geomarker-io/riseup_geomarker_pipeline",
+    name = desc::desc_get("Package"),
+    version = desc::desc_get("Version"),
+    title = desc::desc_get("Title"),
+    description = desc::desc_get("Description"),
+    homepage = desc::desc_get("URL"),
   )
 
 saveRDS(d, "data/riseup_geomarker_pipeline_output.rds")

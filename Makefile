@@ -1,10 +1,10 @@
 tdr: $(tdr)
 tdr = data/riseup_geomarker_pipeline_output/riseup_geomarker_pipeline_output.csv data/riseup_geomarker_pipeline_output/tabular-data-resource.yaml
 
-$(tdr): data/riseup_geomarker_pipeline_output.rds
+$(tdr): data/riseup_geomarker_pipeline_output.rds DESCRIPTION
 	R --quiet -e "codec::write_tdr_csv(readRDS('data/riseup_geomarker_pipeline_output.rds'), 'data')"
 
-data/riseup_geomarker_pipeline_output.rds: data/cleaned_addresses.rds data/geocodes.rds data/census_tract_level_data.rds data/exact_location_geomarkers.rds data/nlcd.rds data/parcel.rds data/daily.rds R/join_all.R
+data/riseup_geomarker_pipeline_output.rds: DESCRIPTION data/cleaned_addresses.rds data/geocodes.rds data/census_tract_level_data.rds data/exact_location_geomarkers.rds data/nlcd.rds data/parcel.rds data/daily.rds R/join_all.R
 	Rscript R/join_all.R
 
 data/cleaned_addresses.rds: R/import_clean_data.R data/HospitalAdmissions.csv
