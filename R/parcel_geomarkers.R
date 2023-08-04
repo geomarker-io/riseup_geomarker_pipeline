@@ -1,6 +1,6 @@
 reticulate::use_virtualenv("~/.virtualenvs/r-parcel/") # make sure to use this one if there is a problem with loading the learned settings file
 library(parcel) # must be >= version 0.6.1
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(codec)
 
 d <- readRDS("data/cleaned_addresses.rds")

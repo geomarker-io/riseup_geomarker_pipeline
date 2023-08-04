@@ -1,4 +1,4 @@
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(codec)
 
 get_daily_county_aqi <- function(year) {

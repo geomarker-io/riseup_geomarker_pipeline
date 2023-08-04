@@ -1,4 +1,4 @@
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 ## library(codec)
 ## library(fs)
 ## library(readr)
