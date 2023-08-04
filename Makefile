@@ -1,13 +1,6 @@
 tdr: $(tdr)
 tdr = data/riseup_geomarker_pipeline_output/riseup_geomarker_pipeline_output.csv data/riseup_geomarker_pipeline_output/tabular-data-resource.yaml
 
-setup: DESCRIPTION
-	R --quiet -e "install.packages('pak'); pak::pak()"
-	R -e "reticulate::py_install('usaddress', pip = TRUE)"
-	R -e "reticulate::py_install('dedupe', pip = TRUE)"
-	R -e "reticulate::py_install('dedupe-variable-address', pip = TRUE)"
-	R -e "pak::pak()"
-
 $(tdr): data/riseup_geomarker_pipeline_output.rds
 	R --quiet -e "codec::write_tdr_csv(readRDS('data/riseup_geomarker_pipeline_output.rds'), 'data')"
 
