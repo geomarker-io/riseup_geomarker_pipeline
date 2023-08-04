@@ -4,9 +4,9 @@ library(codec)
 
 d <- readRDS("data/geocodes.rds")
 
-# roads
-d <- d |>
-  degauss_run("roads", "0.2.1", quiet = FALSE)
+## # roads
+## d <- d |>
+##   degauss_run("roads", "0.2.1", quiet = FALSE)
 
 # aadt
 d <- d |>
@@ -22,23 +22,24 @@ d <- d |>
   degauss_run("drivetime", "1.2.0", argument = "cchmc", quiet = FALSE)
 
 # add column attributes
-d <- d |>
-  add_col_attrs(dist_to_1100,
-    title = "Distance to Nearest Primary Road",
-    description = "distance (meters) to the nearest S1100 road"
-  ) |>
-  add_col_attrs(dist_to_1200,
-    title = "Distance to Nearest Secondary Road",
-    description = "distance (meters) to the nearest S1200 road"
-  ) |>
-  add_col_attrs(length_1100,
-    title = "Length of Primary Roads",
-    description = "length (meters) of S1100 roads within a 400 m buffer"
-  ) |>
-  add_col_attrs(length_1200,
-    title = "Length of Secondary Roads",
-    description = "length (meters) of S1200 roads within a 400 m buffer"
-  ) |>
+d <-
+  d |>
+  ## add_col_attrs(dist_to_1100,
+  ##   title = "Distance to Nearest Primary Road",
+  ##   description = "distance (meters) to the nearest S1100 road"
+  ## ) |>
+  ## add_col_attrs(dist_to_1200,
+  ##   title = "Distance to Nearest Secondary Road",
+  ##   description = "distance (meters) to the nearest S1200 road"
+  ## ) |>
+  ## add_col_attrs(length_1100,
+  ##   title = "Length of Primary Roads",
+  ##   description = "length (meters) of S1100 roads within a 400 m buffer"
+  ## ) |>
+  ## add_col_attrs(length_1200,
+  ##   title = "Length of Secondary Roads",
+  ##   description = "length (meters) of S1200 roads within a 400 m buffer"
+  ## ) |>
   add_col_attrs(length_stop_go,
     title = "Length of Roads with Stop and Go Traffic",
     description = "total length of arterial roads (meters) within 400 m"
