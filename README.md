@@ -64,7 +64,7 @@ parcel --parcel id join \n on ---> parcel_data(tax auditor databases,\nhousing c
 ### Running
 
 1. Clone github repository to destination; manually move input health data into place (`data/HospitalAdmissions.csv`)
-2. Install all packages from DESCRIPTION file by running `pak::pak()` in the project root from R. (If you are on a linux machine, it may speed up installation to use binaries hosted by Posit, by setting `options("repos" = c("CRAN" = "https://packagemanager.rstudio.com/all/__linux__/focal/latest"))`, substituting `focal` for your specific linux version.)
+2. Install all packages from DESCRIPTION file by running `pak::pak()` *or* `remotes::install_deps()` in the project root from R. (If you are on a linux machine, speed up installation to use binaries hosted by Posit, by setting `options("repos" = c("CRAN" = "https://packagemanager.rstudio.com/all/__linux__/jammy/latest"))`, substituting `focal` for your specific linux version.)
 3. Install required python libraries. (Use `reticulate::py_config()` to check on available python environments):
 
 ```R
@@ -74,3 +74,4 @@ reticulate::py_install("dedupe-variable-address", pip = TRUE)
 ```
 
 4. Use `make` to create targets defined in `Makefile` or `make all` to run all targets. *`docker` is required to run the `geocode` and `geomark` targets.*
+
