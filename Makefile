@@ -52,5 +52,5 @@ data/exact_location_geomarkers.rds: data/geocodes.rds R/exact_location_geomarker
 data/nlcd.rds: data/geocodes.rds R/nlcd_geomarkers.R
 	Rscript R/nlcd_geomarkers.R
 
-data/parcel.rds: data/geocodes.rds R/parcel_geomarkers.R
+data/parcel.rds: data/cleaned_addresses.rds R/parcel_geomarkers.R
 	Rscript R/parcel_geomarkers.R
