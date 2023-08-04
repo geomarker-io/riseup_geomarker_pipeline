@@ -1,4 +1,4 @@
-## dir.create(tools::R_user_dir("s3", "data"), showWarnings = FALSE)
+dir.create(tools::R_user_dir("s3", "data"), showWarnings = FALSE)
 
 
 #' get path to NLCD impervious raster file (download and convert if necessary)
