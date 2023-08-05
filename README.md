@@ -57,7 +57,7 @@ parcel --parcel id join \n on ---> parcel_data(tax auditor databases,\nhousing c
 
 ### Developing
 
-- `/data` is for any output data associated with a participant *and/or* the raw hospital admissions file; this entire directory will always be git ignored
+- `/data` is for any output data associated with a participant *and/or* the raw hospital admissions file; any `*.rds` or `*.csv` files in this directory will always be git ignored
 - `/data-raw` is for raw (e.g., violations spreadsheet) or intermediate data products (e.g., daily AQI) that are tracked using git
 - `Makefile` defines the pipeline, see high level targets there
 

@@ -1,0 +1,450 @@
+profile: tabular-data-resource
+name: riseup_geomarker_pipeline
+path: riseup_geomarker_pipeline.csv
+version: 1.0.0
+title: riseup_geomarker_pipeline
+homepage: https://github.com/geomarker-io/riseup_geomarker_pipeline
+description: |-
+  Input addresses from the electronic health record
+      are cleaned, geocoded, geomarked, linked to parcel
+      data, and linked to daily data. The data output is
+      a tabular data resource (csv file).
+schema:
+  fields:
+    aqi:
+      title: AQI
+      description: Air Quality Index for Hamilton County, Ohio
+    pollen_total:
+      title: Pollen Score
+      description: Pollen count (grains/cubic meter) * pollen factor
+    outdoor_mold_total:
+      title: Outdoor Mold Score
+      description: Outdoor mold count (spores/cubic meter) * mold factor
+    wind_speed:
+      title: Wind Speed
+      description: Wind Speed
+    wind_direction:
+      title: Wind Direction
+      description: Wind Direction
+    outdoor_temp:
+      title: Outdoor Temperature
+      description: Outdoor Temperature
+    relative_humidity:
+      title: Relative Humidity
+      description: Relative Humidity
+    fraction_poverty:
+      name: fraction_poverty
+      title: Fraction of Households in Poverty
+      description: Fraction of households with income below poverty level within the
+        past 12 months
+      type: number
+    fraction_poverty_moe:
+      name: fraction_poverty_moe
+      type: number
+    n_children_lt18:
+      name: n_children_lt18
+      type: integer
+    n_children_lt18_moe:
+      name: n_children_lt18_moe
+      type: integer
+    n_pop:
+      name: n_pop
+      type: integer
+    n_pop_moe:
+      name: n_pop_moe
+      type: integer
+    n_household_lt18:
+      name: n_household_lt18
+      type: integer
+    n_household_lt18_moe:
+      name: n_household_lt18_moe
+      type: integer
+    n_household:
+      name: n_household
+      type: integer
+    n_household_moe:
+      name: n_household_moe
+      type: integer
+    fraction_insured:
+      name: fraction_insured
+      title: Fraction of People Insured
+      description: Fraction of population with health insurance (available from 2012
+        onwards only)
+      type: number
+    fraction_insured_moe:
+      name: fraction_insured_moe
+      type: number
+    fraction_snap:
+      name: fraction_snap
+      title: Fraction of Households Receiving SNAP
+      description: Fraction of households receiving food stamps/SNAP in the past 12
+        months
+      type: number
+    fraction_snap_moe:
+      name: fraction_snap_moe
+      type: number
+    fraction_fam_nospouse:
+      name: fraction_fam_nospouse
+      title: Fraction of family households with a single householder
+      description: Single householder is male or female household, with no spouse
+        present
+      type: number
+    fraction_fam_nospouse_moe:
+      name: fraction_fam_nospouse_moe
+      type: number
+    fraction_employment:
+      name: fraction_employment
+      title: Fraction of People Employed
+      description: Fraction of people employed in civilian labor force
+      type: number
+    fraction_employment_moe:
+      name: fraction_employment_moe
+      type: number
+    n_housing_units:
+      name: n_housing_units
+      type: integer
+    n_housing_units_moe:
+      name: n_housing_units_moe
+      type: integer
+    median_home_value:
+      name: median_home_value
+      title: Median Value of Owner-Occupied Housing Units
+      type: number
+    median_home_value_moe:
+      name: median_home_value_moe
+      type: number
+    median_home_value_2010adj:
+      name: median_home_value_2010adj
+      title: Median Value of Owner-Occupied Housing Units (in 2010 USD)
+      type: number
+    fraction_housing_renters:
+      name: fraction_housing_renters
+      title: Fraction of Housing Units Occupied by Renters
+      description: fraction denominator is number of *occupied* housing units
+      type: number
+    fraction_housing_renters_moe:
+      name: fraction_housing_renters_moe
+      type: number
+    median_rent_to_income_percentage:
+      name: median_rent_to_income_percentage
+      title: Median Rent to Income Percentage
+      description: The median of the percentage of rent to income among all renter-occupied
+        housing units
+      type: number
+    median_rent_to_income_percentage_moe:
+      name: median_rent_to_income_percentage_moe
+      type: number
+    fraction_high_rent:
+      name: fraction_high_rent
+      title: Fraction of Housing Units Paying at least 30% of Income on Rent
+      type: number
+    fraction_high_rent_moe:
+      name: fraction_high_rent_moe
+      type: number
+    fraction_conditions:
+      name: fraction_conditions
+      title: Fraction of Housing Units with Substandard Housing Conditions
+      description: 'substandard housing: incomplete plumbing or kitchens, overcrowding,
+        30% or more of household income spent on rent or owner costs'
+      type: number
+    fraction_conditions_moe:
+      name: fraction_conditions_moe
+      type: number
+    fraction_builtbf1970:
+      name: fraction_builtbf1970
+      title: Fraction of Housing Units Built Before 1970
+      type: number
+    fraction_builtbf1970_moe:
+      name: fraction_builtbf1970_moe
+      type: number
+    fraction_vacant:
+      name: fraction_vacant
+      title: Fraction of Housing Units that are Vacant
+      type: number
+    fraction_vacant_moe:
+      name: fraction_vacant_moe
+      type: number
+    fraction_nhl:
+      name: fraction_nhl
+      title: Fraction of People Not Hispanic/Latino
+      type: number
+    fraction_nhl_moe:
+      name: fraction_nhl_moe
+      type: number
+    fraction_nhl_w:
+      name: fraction_nhl_w
+      title: Fraction of People White and Not Hispanic/Latino
+      type: number
+    fraction_nhl_w_moe:
+      name: fraction_nhl_w_moe
+      type: number
+    fraction_nhl_b:
+      name: fraction_nhl_b
+      title: Fraction of People Black and Not Hispanic/Latino
+      type: number
+    fraction_nhl_b_moe:
+      name: fraction_nhl_b_moe
+      type: number
+    fraction_nhl_o:
+      name: fraction_nhl_o
+      title: Fraction of People Not Black, Not White, and Not Hispanic/Latino
+      type: number
+    fraction_nhl_o_moe:
+      name: fraction_nhl_o_moe
+      type: number
+    fraction_hl:
+      name: fraction_hl
+      title: Fraction of People Hispanic/Latino
+      type: number
+    fraction_hl_moe:
+      name: fraction_hl_moe
+      type: number
+    fraction_hl_w:
+      name: fraction_hl_w
+      title: Fraction of People White and Hispanic/Latino
+      type: number
+    fraction_hl_w_moe:
+      name: fraction_hl_w_moe
+      type: number
+    fraction_hl_b:
+      name: fraction_hl_b
+      title: Fraction of People Black and Hispanic/Latino
+      type: number
+    fraction_hl_b_moe:
+      name: fraction_hl_b_moe
+      type: number
+    fraction_hl_o:
+      name: fraction_hl_o
+      title: Fraction of People Not Black, Not White, and Hispanic/Latino
+      type: number
+    fraction_hl_o_moe:
+      name: fraction_hl_o_moe
+      type: number
+    fraction_lesh:
+      name: fraction_lesh
+      title: Fraction of Households Speaking Limited English
+      description: Available from 2016 onwards
+      type: number
+    fraction_lesh_moe:
+      name: fraction_lesh_moe
+      type: number
+    median_income:
+      name: median_income
+      title: Median Household Income
+      type: number
+    median_income_moe:
+      name: median_income_moe
+      type: number
+    median_income_2010adj:
+      name: median_income_2010adj
+      title: Median Household Income (in 2010 USD)
+      type: number
+    fraction_hs:
+      name: fraction_hs
+      title: Fraction of Adults with At Least High School Education
+      description: Available from 2012 onwards
+      type: number
+    fraction_hs_moe:
+      name: fraction_hs_moe
+      type: number
+    Total:
+      name: Total
+      title: Total Crime Risk
+      type: number
+    Personal:
+      name: Personal
+      title: Personal Crime Risk
+      type: number
+    Murder:
+      name: Murder
+      title: Murder Crime Risk
+      type: number
+    Rape:
+      name: Rape
+      title: Rape Crime Risk
+      type: number
+    Robbery:
+      name: Robbery
+      title: Robbery Crime Risk
+      type: number
+    Assault:
+      name: Assault
+      title: Assault Crime Risk
+      type: number
+    Property:
+      name: Property
+      title: Property Crime Risk
+      type: number
+    Burglary:
+      name: Burglary
+      title: Burglary Crime Risk
+      type: number
+    Theft:
+      name: Theft
+      title: Theft Crime Risk
+      type: number
+    MotVeh:
+      name: MotVeh
+      title: Motor Vehicle Crime Risk
+      type: number
+    pct_impervious_2019:
+      title: Imperviousness (%)
+      description: 2019 Average percent impervious of all 30x30m cells within a cirlce
+        defined around each point with a 400 m radius
+    pct_treecanopy_2019:
+      title: Tree Canopy (%)
+      description: 2019 Average percent treecanopy of all 30x30m cells within a cirlce
+        defined around each point with a 400 m radius
+    length_stop_go:
+      name: length_stop_go
+      title: Length of Roads with Stop and Go Traffic
+      description: total length of arterial roads (meters) within 400 m
+      type: number
+    length_moving:
+      name: length_moving
+      title: Length of Roads with Moving Traffic
+      description: total length of interstates, expressways, and freeways (meters)
+        within 400 m
+      type: number
+    vehicle_meters_stop_go:
+      name: vehicle_meters_stop_go
+      title: Stop and Go Traffic (vehicle-m)
+      description: average daily number of vehicles multiplied by the length of arterial
+        roads (vehicle-meters)
+      type: number
+    vehicle_meters_moving:
+      name: vehicle_meters_moving
+      title: Moving Traffic (vehicle-m)
+      description: average daily number of vehicles multiplied by the length of interstates,
+        expressways, and freeways (vehicle-meters)
+      type: number
+    truck_meters_stop_go:
+      name: truck_meters_stop_go
+      title: Stop and Go Truck Traffic (truck-m)
+      description: average daily number of trucks multiplied by the length of arterial
+        roads (truck-meters)
+      type: number
+    truck_meters_moving:
+      name: truck_meters_moving
+      title: Moving Truck Traffic (truck-m)
+      description: average daily number of trucks multiplied by the length of interstates,
+        expressways, and freeways (truck-meters)
+      type: number
+    evi_500:
+      name: evi_500
+      title: EVI (500m buffer)
+      description: average enhanced vegetation index within a 500 meter buffer radius
+      type: number
+    evi_1500:
+      name: evi_1500
+      title: EVI (1500m buffer)
+      description: average enhanced vegetation index within a 1500 meter buffer radius
+      type: number
+    evi_2500:
+      name: evi_2500
+      title: EVI (2500m buffer)
+      description: average enhanced vegetation index within a 2500 meter buffer radius
+      type: number
+    drive_time:
+      name: drive_time
+      title: Drive Time to CCHMC
+      description: drive time in minutes (in 6 minute intervals, ">60" if more than
+        1 hour drive time)
+      type: string
+    distance:
+      name: distance
+      title: Distance to CCHMC
+      description: distance in meters
+      type: number
+    parcel_address:
+      name: parcel_address
+      title: Parcel Address
+      description: derived by pasting Property Address Number, Street, and Suffix
+      type: string
+    property_addr_number:
+      name: property_addr_number
+      title: Address Number
+      type: string
+    property_addr_street:
+      name: property_addr_street
+      title: Address Street
+      type: string
+    property_addr_suffix:
+      name: property_addr_suffix
+      title: Address Suffix
+      type: string
+    condo_id:
+      name: condo_id
+      title: Condo identifier
+      description: used to match two parcels to the same building of condos
+      type: string
+    condo_unit:
+      name: condo_unit
+      title: Condo unit
+      description: specifies a specific unit within a building of condos
+      type: string
+    parcel_centroid_lat:
+      name: parcel_centroid_lat
+      title: Parcel Centroid Latitude
+      description: coordinates derived from centroid of parcel shape
+      type: number
+    parcel_centroid_lon:
+      name: parcel_centroid_lon
+      title: Parcel Centroid Longitude
+      description: coordinates derived from centroid of parcel shape
+      type: number
+    market_total_value:
+      name: market_total_value
+      title: Market Total Value
+      type: number
+    land_use:
+      name: land_use
+      type: string
+      constraints:
+        enum:
+        - apartment, 4-19 units
+        - apartment, 20-39 units
+        - apartment, 40+ units
+        - nursing home / private hospital
+        - independent living (seniors)
+        - mobile home / trailer park
+        - other commercial housing
+        - office / apartment over
+        - condominium office building
+        - resid unplat 10-19 acres
+        - resid unplat 20-29 acres
+        - resid unplat 30-39 acres
+        - single family dwelling
+        - single fam dw 0-9 acr
+        - two family dwelling
+        - three family dwelling
+        - condominium unit
+        - boataminium
+        - condo or pud garage
+        - landominium
+        - manufactured home
+        - lihtc res
+        - other residential structure
+        - metropolitan housing authority
+        - charities, hospitals, retir
+    acreage:
+      name: acreage
+      title: Acreage
+      type: number
+    homestead:
+      name: homestead
+      title: Homestead
+      type: boolean
+    rental_registration:
+      name: rental_registration
+      title: Rental Registration
+      type: boolean
+    RED_25_FLAG:
+      name: RED_25_FLAG
+      type: boolean
+    n_violation:
+      title: Number of housing violations
+      description: Number of housing violations issued between 2014 and 2021
+    any_housing_violation:
+      title: Any housing violation issued
+      description: Any housing violation issued between 2014 and 2021 (True/False)

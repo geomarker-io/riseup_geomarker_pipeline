@@ -1,4 +1,6 @@
 .Rproj.user
-data/
+data/*.csv
+data/*/*.csv
+data/*.rds
 nlcd_downloads/
 .DS_Store
