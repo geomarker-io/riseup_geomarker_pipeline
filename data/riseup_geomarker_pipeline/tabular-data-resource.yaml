@@ -1,7 +1,7 @@
 profile: tabular-data-resource
 name: riseup_geomarker_pipeline
 path: riseup_geomarker_pipeline.csv
-version: 1.0.0
+version: 1.1.0
 title: riseup_geomarker_pipeline
 homepage: https://github.com/geomarker-io/riseup_geomarker_pipeline
 description: |-
@@ -442,6 +442,26 @@ schema:
     RED_25_FLAG:
       name: RED_25_FLAG
       type: boolean
+    year_built:
+      name: year_built
+      type: integer
+    n_total_rooms:
+      name: n_total_rooms
+      type: integer
+    n_bedrooms:
+      name: n_bedrooms
+      type: integer
+    n_full_bathrooms:
+      name: n_full_bathrooms
+      type: integer
+    n_half_bathrooms:
+      name: n_half_bathrooms
+      type: integer
+    online_market_total_value:
+      name: online_market_total_value
+      description: May differ from the market_total_value from CAGIS auditor online
+        data. This value is scraped from the auditor's website.
+      type: number
     n_violation:
       title: Number of housing violations
       description: Number of housing violations issued between 2014 and 2021
