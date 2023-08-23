@@ -7,26 +7,33 @@ d_out <- d |> bind_cols(get_parcel_data(d$address))
 
 # housing violation data
 d_violation <-
-  fs::path("data-raw", "Violations Likley Related to Lead, Asthma, and Mental Health from 2002 to date.xlsx") |>
-  readxl::read_excel() |>
-  filter(as.Date(ISSUED) >= as.Date("2014-01-01") & as.Date(ISSUED) <= as.Date("2021-12-31")) |>
-  mutate(parcel_id11 = substr(PARCEL_NO, 2, 12)) |> # removing one extra zero
-  group_by(parcel_id11) |>
-  summarize(n_violation = n())
+  codec::read_tdr_csv("https://raw.githubusercontent.com/geomarker-io/curated_violations/main/curated_violations/tabular-data-resource.yaml") |>
+  distinct() |>   # remove duplicates
+  filter(date >= as.Date("2014-01-01") & date <= as.Date("2021-12-31")) |> 
+  mutate(paint_violation = str_detect(violation_type, "PAINT"))   # paint violation indicator
+
+d_violation <- d_violation |> 
+  group_by(parcel_number) |> 
+  summarize(n_violation = n(),
+            n_paint_violation = sum(paint_violation))  # summarize
 
 # merge with admission data
 d_out <-
   d_out |>
-  mutate(parcel_id11 = substr(parcel_id, 1, 11)) |> # first 11 digit of parcel id
-  left_join(d_violation, by = join_by(parcel_id11)) |>
+  left_join(d_violation, by = join_by(parcel_id == parcel_number)) |>
   mutate(
     any_housing_violation = case_when(
       !is.na(n_violation) ~ TRUE,
       is.na(n_violation) & !(parcel_id %in% c(NA, "TIED_MATCHES")) ~ FALSE,
       parcel_id %in% c(NA, "TIED_MATCHES") ~ NA
+    ),
+    any_paint_violation = case_when(
+      n_paint_violation > 0 ~ TRUE,
+      n_paint_violation == 0 ~ FALSE,
+      !any_housing_violation ~ FALSE,
+      parcel_id %in% c(NA, "TIED_MATCHES") ~ NA
     )
-  ) |>
-  select(-parcel_id11)
+  ) 
 
 d_out <- d_out |>
   add_col_attrs(n_violation,
@@ -36,6 +43,14 @@ d_out <- d_out |>
   add_col_attrs(any_housing_violation,
     title = "Any housing violation issued",
     description = "Any housing violation issued between 2014 and 2021 (True/False)"
+  ) |>
+  add_col_attrs(n_paint_violation,
+                title = "Number of paint related violations",
+                description = "Number of paint related violations issued between 2014 and 2021"
+  ) |>
+  add_col_attrs(any_paint_violation,
+                title = "Any paint related violation issued",
+                description = "Any paint related violation issued between 2014 and 2021 (True/False)"
   )
 
 saveRDS(d_out, "data/parcel.rds")
