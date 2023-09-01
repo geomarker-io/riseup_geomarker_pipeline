@@ -49,4 +49,6 @@ d <-
     title = "2020 Census Tract identifer"
   )
 
+d <- select(d, -address)
+
 saveRDS(d, "data/geocodes.rds")
