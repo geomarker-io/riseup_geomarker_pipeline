@@ -38,4 +38,8 @@ d_out <- d_out |>
     description = "Any housing violation issued between 2014 and 2021 (True/False)"
   )
 
+d_out <-
+  d_out |>
+  select(-raw_address, -address, -input_address)
+
 saveRDS(d_out, "data/parcel.rds")
