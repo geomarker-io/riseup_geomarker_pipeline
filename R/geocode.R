@@ -2,7 +2,9 @@ library(dplyr, warn.conflicts = FALSE)
 library(dht)
 library(codec)
 
-d <- readRDS("data/cleaned_addresses.rds")
+d <-
+  readRDS("data/cleaned_addresses.rds") |>
+  select(-raw_address)
 
 # geocode
 d <- d |>
@@ -12,10 +14,6 @@ d <- d |>
 
 # add column attributes
 d <- d |>
-  add_col_attrs(address,
-    title = "Address",
-    description = "parsed address"
-  ) |>
   add_col_attrs(lat,
     title = "Latitude",
     description = "geocoded latitude coordinate"

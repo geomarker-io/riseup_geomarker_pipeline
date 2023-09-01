@@ -10,8 +10,7 @@ d <-
   fs::path("data", data_names, ext = "rds") |>
   purrr::map(readRDS, .progress = "reading intermediate targets") |>
   setNames(data_names) |>
-  purrr::reduce(left_join, by = guid) |>
-  select(-ends_with(c(".x", ".y")))
+  purrr::reduce(left_join, by = guid)
 
 d <- d |>
   add_attrs(
