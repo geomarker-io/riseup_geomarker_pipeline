@@ -7,8 +7,7 @@ d_out <- d |> bind_cols(get_parcel_data(d$address))
 
 # housing violation data
 d_violation <-
-  codec::read_tdr_csv("https://raw.githubusercontent.com/geomarker-io/curated_violations/main/curated_violations/tabular-data-resource.yaml") |>
-  distinct() |>   # remove duplicates
+  codec::read_tdr_csv("https://github.com/geomarker-io/curated_violations/releases/download/0.1.2/tabular-data-resource.yaml") |>
   filter(date >= as.Date("2014-01-01") & date <= as.Date("2021-12-31")) |> 
   mutate(paint_violation = str_detect(violation_type, "PAINT"))   # paint violation indicator
 
