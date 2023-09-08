@@ -55,7 +55,7 @@ d_out <- cincy::add_neighborhood(d_out, vintage = "2010")
 
 # 2019 hh_acs_measures
 hh_acs_2019 <-
-  read_tdr_csv("https://github.com/geomarker-io/hh_acs_measures/releases/download/v1.0.0") |>
+  read_tdr_csv("https://github.com/geomarker-io/hh_acs_measures/releases/download/v1.1.0") |>
   filter(year == 2019) |>
   select(-year, -census_tract_vintage)
 
