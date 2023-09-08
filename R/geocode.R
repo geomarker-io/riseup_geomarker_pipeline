@@ -8,34 +8,29 @@ d <-
 
 # geocode
 readr::write_csv(d, "data/address_for_geocoding.csv")
-
 system2("docker",
         c("run", "--rm",
           "-v ./data:/tmp",
-          "ghcr.io/degauss-org/geocoder:3.3.0-v8",
+          ifelse(grepl("darwin", version$os), # use alt tag for m1/m2 macs
+                 "ghcr.io/degauss-org/geocoder:3.3.0-v8",
+                 "ghcr.io/degauss-org/geocoder:3.3.0"),
           "address_for_geocoding.csv"))
-
 d <-
   readr::read_csv("data/address_for_geocoding_geocoder_3.3.0_score_threshold_0.5.csv", col_types = readr::cols(
-  PAT_ENC_CSN_ID = readr::col_character(),
-  HOSP_ADMSN_TIME = readr::col_date(format = "%Y-%m-%d"),
-  PAT_MRN_ID = readr::col_character(),
-  address = readr::col_character(),
-  matched_street = readr::col_character(),
-  matched_zip = readr::col_double(),
-  matched_city = readr::col_character(),
-  matched_state = readr::col_character(),
-  lat = readr::col_double(),
-  lon = readr::col_double(),
-  score = readr::col_double(),
-  precision = readr::col_character(),
-  geocode_result = readr::col_character()
+    PAT_ENC_CSN_ID = readr::col_character(),
+    HOSP_ADMSN_TIME = readr::col_date(format = "%Y-%m-%d"),
+    PAT_MRN_ID = readr::col_character(),
+    address = readr::col_character(),
+    matched_street = readr::col_character(),
+    matched_zip = readr::col_double(),
+    matched_city = readr::col_character(),
+    matched_state = readr::col_character(),
+    lat = readr::col_double(),
+    lon = readr::col_double(),
+    score = readr::col_double(),
+    precision = readr::col_character(),
+    geocode_result = readr::col_character()
   ))
-
-d <- d |>
-  dht::degauss_run("geocoder", "3.3.0-v8", quiet = FALSE) |>
-  select(-starts_with("matched_")) |>
-  select(-score, -precision)
 
 # add column attributes
 d <- d |>
