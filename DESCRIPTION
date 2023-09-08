@@ -25,7 +25,8 @@ Imports:
     stringr,
     terra,
     tibble,
-    tidyr
+    tidyr,
+    tigris
 Remotes:  
     geomarker-io/cincy,
     geomarker-io/codec,

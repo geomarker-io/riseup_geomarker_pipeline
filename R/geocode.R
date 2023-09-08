@@ -47,28 +47,6 @@ d <- d |>
     description = "character string summarizing the geocoding result (geocoded: the address was geocoded with a precision of either range or street and a score of 0.5 or greater; imprecise_geocode: the address was geocoded, but results were suppressed because the precision was intersection, zip, or city and/or the score was less than 0.5; po_box: the address was not geocoded because it is a PO Box; cincy_inst_foster_addr: the address was not geocoded because it is a known institutional address, not a residential address; non_address_text: the address was not geocoded because it was blank or listed as “foreign”, “verify”, or “unknown”)"
   )
 
-# 2010 census block group and tract
-d <-
-  d |>
-  degauss_run("census_block_group", "0.6.0", argument = "2010", quiet = FALSE) |>
-  add_col_attrs(census_block_group_id_2010,
-    title = "2010 Census Block Group identifer"
-  ) |>
-  add_col_attrs(census_tract_id_2010,
-    title = "2010 Census Tract identifer"
-  )
-
-# 2020 census block group and tract
-d <-
-  d |>
-  degauss_run("census_block_group", "0.6.0", argument = "2020", quiet = FALSE) |>
-  add_col_attrs(census_block_group_id_2020,
-    title = "2020 Census Block Group identifer"
-  ) |>
-  add_col_attrs(census_tract_id_2020,
-    title = "2020 Census Tract identifer"
-  )
-
 d <- select(d, -address)
 
 saveRDS(d, "data/geocodes.rds")
