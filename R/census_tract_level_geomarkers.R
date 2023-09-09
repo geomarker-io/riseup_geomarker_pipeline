@@ -63,7 +63,11 @@ d_out <- left_join(d_out, hh_acs_2019, by = "census_tract_id")
 
 # AGS crime risk
 ags_crime_risk <- read_tdr_csv("https://github.com/geomarker-io/hamilton_crime_risk/releases/download/v0.1.0")
+names(ags_crime_risk) <- paste0("crime_", tolower(names(ags_crime_risk)))
+ags_crime_risk <- rename(ags_crime_risk, census_tract_id = crime_census_tract_id)
 d_out <- left_join(d_out, ags_crime_risk, by = "census_tract_id")
 
 # save
-saveRDS(d, "data/census_tract_level_data.rds")
+d_out |>
+  select(-lat, -lon, -s2_geography, -state) |>
+  saveRDS("data/census_tract_level_data.rds")
