@@ -7,7 +7,7 @@ d <- readRDS("data/geocodes.rds")
 
 d_vect <-
   d |>
-  select(PAT_ENC_CSN_ID, lat, lon) |>
+  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon) |>
   na.omit() |>
   distinct(.keep_all = TRUE) |>
   st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
@@ -17,8 +17,7 @@ d_vect <-
 
 # functions to download and create NLCD tif files per year
 source("data-raw/nlcd.R")
-# will save to:
-tools::R_user_dir("s3", "data")
+# will save to: tools::R_user_dir("s3", "data")
 
 roi <- cincy::county_hlthv_2010 |> st_union()
 
@@ -41,7 +40,8 @@ d_vect$pct_treecanopy_2019 <-
   round(2)
 
 d <- d |>
-  left_join(as_tibble(d_vect), by = "PAT_ENC_CSN_ID") |>
+  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID) |>
+  left_join(as_tibble(d_vect), by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")) |>
   add_col_attrs(pct_impervious_2019,
     title = "Imperviousness (%)",
     description = "2019 Average percent impervious of all 30x30m cells within a cirlce defined around each point with a 400 m radius"

@@ -2,28 +2,37 @@ library(dplyr, warn.conflicts = FALSE)
 library(dht)
 library(codec)
 
-d <- readRDS("data/geocodes.rds")
+d_in <-
+  readRDS("data/geocodes.rds") |>
+  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon)
+
+d <- na.omit(d_in)
 
 ## # roads
 ## d <- d |>
 ##   degauss_run("roads", "0.2.1", quiet = FALSE)
 
 # aadt
-d <- d |>
-  degauss_run("aadt", "0.2.0", quiet = FALSE) |>
-  select(-.row)
+tictoc::tic()
+d <- d |> degauss_run("aadt", "0.2.2", quiet = FALSE)
+tictoc::toc()
 
 # greenspace
-d <- d |>
-  degauss_run("greenspace", "0.3.0", quiet = FALSE)
+tictoc::tic()
+d <- d |> degauss_run("greenspace", "0.3.0", quiet = FALSE)
+tictoc::toc()
 
 # drivetime
-d <- d |>
-  degauss_run("drivetime", "1.2.0", argument = "cchmc", quiet = FALSE)
+tictoc::tic()
+d <- d |> degauss_run("drivetime", "1.2.0", argument = "cchmc", quiet = FALSE)
+tictoc::toc()
+
+d_out <- left_join(select(d_in, -lat, -lon), select(d, -lat, -lon),
+                   by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID"))
 
 # add column attributes
-d <-
-  d |>
+d_out <-
+  d_out |>
   ## add_col_attrs(dist_to_1100,
   ##   title = "Distance to Nearest Primary Road",
   ##   description = "distance (meters) to the nearest S1100 road"
@@ -86,4 +95,4 @@ d <-
   ) |>
   add_type_attrs()
 
-saveRDS(d, "data/exact_location_geomarkers.rds")
+saveRDS(d_out, "data/exact_location_geomarkers.rds")

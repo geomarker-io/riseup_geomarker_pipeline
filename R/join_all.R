@@ -3,14 +3,27 @@ library(codec)
 
 guid <- c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")
 
-data_names <- c("cleaned_addresses", "geocodes", "daily", "census_tract_level_data",
-                "nlcd", "exact_location_geomarkers", "parcel")
+data_names <- c("cleaned_addresses",
+                "geocodes",
+                "daily",
+                "census_tract_level_data",
+                "nlcd",
+                "exact_location_geomarkers",
+                "parcel")
 
 d <-
   fs::path("data", data_names, ext = "rds") |>
   purrr::map(readRDS, .progress = "reading intermediate targets") |>
   setNames(data_names) |>
   purrr::reduce(left_join, by = guid)
+
+# rename score from geocoder and score from parcel to unique names
+d |>
+  rename(score_geocoder = score.x,
+         score_parcel = score.y) |>
+  names() |>
+  knitr::kable()
+
 
 d <- d |>
   add_attrs(
