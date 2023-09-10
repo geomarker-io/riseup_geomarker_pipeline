@@ -7,27 +7,30 @@ This is a pipeline for appending place- and date- based geomarker data from mult
 
 graph LR
 
-classDef id fill:#acd68e,stroke:#000,stroke-width:1px;
-classDef input fill:#c490ae,stroke:#000,stroke-width:1px;
-classDef tool fill:#e8e8e8,stroke:#000,stroke-width:1px,stroke-dasharray: 5 2;
-classDef data fill:#67ccde,stroke:#000,stroke-width:1px;
+classDef id fill:#fff,stroke:#000,stroke-width:1px;
+classDef input fill:#fff,stroke:#000,stroke-width:1px;
+classDef data fill:#e8e8e8,stroke:#000,stroke-width:1px;
 
-address(address):::input
+hosp[(hospitalizations)]:::input
+hosp --> date(date related to address):::id
+hosp -->  address(cleaned and parsed \naddress components):::input
 
-address ---> date(date related \nto address):::id
-date --date join on all addresses \nin primary catchment area---> shared_exposure_series(weather, AQS,\npollen, mold,\nseasonality,\ninstructional days):::data
+daily("weather, air quality, pollen/mold, \nseasonality, instructional days"):::data
 
-address --address \ncleaning, \nparsing, \nnormalization--> clean_address(address \ncomponents):::data
+date --join by date --> daily
 
-clean_address --street range \ngeocoding--> geocode(geocoded \ncoordinates):::id
-clean_address --exact address\nmatching--> parcel(parcel \nidentifier):::id
+address --street range \ngeocoding--> geocode(geocoded \ncoordinates):::id
+address --probabilistic \nmatching--> parcel(parcel \nidentifier):::id
 
-geocode --geomarker \n assessment \n library---> pd(point-level \ndata resources, e.g.,\n greenspace, traffic,\n air pollution, \nhospital access):::data
+pd(point-level \ndata resources, e.g.,\n greenspace, traffic,\n air pollution, \nhospital access):::data
 
-geocode --spatial \nintersection--> ct(census tract \nidentifier):::id
-ct --census tract id \n & year join --> tract_data(tract-level data resources, e.g.,\nChild Opportunity Index,\n Material Deprivation Index):::data
 
-parcel --parcel id join \n on ---> parcel_data(tax auditor databases,\nhousing code violations,\nhouse hospitalization history):::data
+tract_data(tract-level data resources, e.g.,\nChild Opportunity Index,\n Material Deprivation Index):::data
+geocode --spatial intersection \nwith census tract --> tract_data
+geocode -- geomarker \nassessment library --> pd
+
+parcel_data(tax auditor databases,\nhousing code violations,\nhousing health pedigree):::data
+parcel --join by parcel identifier--> parcel_data
 ```
 
 ## Data
