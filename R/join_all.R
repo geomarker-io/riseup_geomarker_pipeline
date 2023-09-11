@@ -18,12 +18,9 @@ d <-
   purrr::reduce(left_join, by = guid)
 
 # rename score from geocoder and score from parcel to unique names
-d |>
+d <- d |>
   rename(score_geocoder = score.x,
-         score_parcel = score.y) |>
-  names() |>
-  knitr::kable()
-
+         score_parcel = score.y)
 
 d <- d |>
   add_attrs(
