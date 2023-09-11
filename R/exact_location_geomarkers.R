@@ -2,44 +2,23 @@ library(dplyr, warn.conflicts = FALSE)
 library(dht)
 library(codec)
 
-d <- readRDS("data/geocodes.rds")
+d_in <-
+  readRDS("data/geocodes.rds") |>
+  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon)
 
-## # roads
-## d <- d |>
-##   degauss_run("roads", "0.2.1", quiet = FALSE)
+d <- na.omit(d_in)
 
-# aadt
-d <- d |>
-  degauss_run("aadt", "0.2.0", quiet = FALSE) |>
-  select(-.row)
+d <- d |> degauss_run("aadt", "0.2.2", quiet = FALSE)
+d <- d |> degauss_run("greenspace", "0.3.0", quiet = FALSE)
+d <- d |> degauss_run("drivetime", "1.2.0", argument = "cchmc", quiet = FALSE)
 
-# greenspace
-d <- d |>
-  degauss_run("greenspace", "0.3.0", quiet = FALSE)
-
-# drivetime
-d <- d |>
-  degauss_run("drivetime", "1.2.0", argument = "cchmc", quiet = FALSE)
+d_out <- left_join(select(d_in, -lat, -lon),
+                   select(d, -lat, -lon),
+                   by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID"))
 
 # add column attributes
-d <-
-  d |>
-  ## add_col_attrs(dist_to_1100,
-  ##   title = "Distance to Nearest Primary Road",
-  ##   description = "distance (meters) to the nearest S1100 road"
-  ## ) |>
-  ## add_col_attrs(dist_to_1200,
-  ##   title = "Distance to Nearest Secondary Road",
-  ##   description = "distance (meters) to the nearest S1200 road"
-  ## ) |>
-  ## add_col_attrs(length_1100,
-  ##   title = "Length of Primary Roads",
-  ##   description = "length (meters) of S1100 roads within a 400 m buffer"
-  ## ) |>
-  ## add_col_attrs(length_1200,
-  ##   title = "Length of Secondary Roads",
-  ##   description = "length (meters) of S1200 roads within a 400 m buffer"
-  ## ) |>
+d_out <-
+  d_out |>
   add_col_attrs(length_stop_go,
     title = "Length of Roads with Stop and Go Traffic",
     description = "total length of arterial roads (meters) within 400 m"
@@ -86,4 +65,4 @@ d <-
   ) |>
   add_type_attrs()
 
-saveRDS(d, "data/exact_location_geomarkers.rds")
+saveRDS(d_out, "data/exact_location_geomarkers.rds")

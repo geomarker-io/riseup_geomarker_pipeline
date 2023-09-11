@@ -1,5 +1,6 @@
 library(dplyr, warn.conflicts = FALSE)
 library(readr)
+library(codec)
 
 # read in raw admission data
 d <- read_csv("data/HospitalAdmissions.csv",
@@ -28,13 +29,21 @@ d <- d |>
     "raw_address",
     c(PAT_ADDR_1, PAT_ADDR_2, PAT_CITY, PAT_STATE, PAT_ZIP),
     sep = " ", na.rm = TRUE
-  )
+  ) |>
+  add_col_attrs(raw_address,
+                title = "Raw Address",
+                description = "Address field created by concatenating PAT_ADDR_1, PAT_ADDR_2, PAT_CITY, PAT_STATE, PAT_ZIP")
 
 # clean and parse out unnecessary address components with parcel
 d <- d |>
   mutate(address_tags = purrr::map(raw_address, parcel::tag_address, .progress = "tagging addresses")) |>
   tidyr::unnest(cols = address_tags) |>
   tidyr::unite("address", street_number, street_name, city, state, zip_code, remove = TRUE, na.rm = FALSE, sep = " ")
+
+d <- d |>
+  add_col_attrs(address,
+                title = "Address",
+                description = "parsed address")
 
 fs::dir_create("data")
 saveRDS(d, "data/cleaned_addresses.rds")

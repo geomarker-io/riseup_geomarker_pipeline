@@ -1,6 +1,8 @@
 library(dplyr, warn.conflicts = FALSE)
 
-d <- readRDS("data/cleaned_addresses.rds")
+d <-
+  readRDS("data/cleaned_addresses.rds") |>
+  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID)
 
 d_daily <-
   fs::path("data-raw", c("daily_aqi", "daily_pollen_mold", "daily_weather"), ext = "rds") |>

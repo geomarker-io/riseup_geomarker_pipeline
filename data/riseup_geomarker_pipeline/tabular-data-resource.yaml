@@ -1,7 +1,7 @@
 profile: tabular-data-resource
 name: riseup_geomarker_pipeline
 path: riseup_geomarker_pipeline.csv
-version: 1.1.0
+version: 1.2.0
 title: riseup_geomarker_pipeline
 homepage: https://github.com/geomarker-io/riseup_geomarker_pipeline
 description: |-
@@ -11,6 +11,13 @@ description: |-
       a tabular data resource (csv file).
 schema:
   fields:
+    raw_address:
+      title: Raw Address
+      description: Address field created by concatenating PAT_ADDR_1, PAT_ADDR_2,
+        PAT_CITY, PAT_STATE, PAT_ZIP
+    address:
+      title: Address
+      description: parsed address
     aqi:
       title: AQI
       description: Air Quality Index for Hamilton County, Ohio
@@ -32,6 +39,9 @@ schema:
     relative_humidity:
       title: Relative Humidity
       description: Relative Humidity
+    census_tract_id:
+      description: 2019 TIGER/Line census tract identifier for the 2010 decennial
+        census
     fraction_poverty:
       name: fraction_poverty
       title: Fraction of Households in Poverty
@@ -76,9 +86,9 @@ schema:
       type: number
     fraction_snap:
       name: fraction_snap
-      title: Fraction of Households Receiving SNAP
-      description: Fraction of households receiving food stamps/SNAP in the past 12
-        months
+      title: Fraction of Households Receiving Assisted Income
+      description: Fraction of households receiving public assistance income or food
+        stamps/SNAP in the past 12 months
       type: number
     fraction_snap_moe:
       name: fraction_snap_moe
@@ -247,43 +257,43 @@ schema:
     fraction_hs_moe:
       name: fraction_hs_moe
       type: number
-    Total:
+    crime_total:
       name: Total
       title: Total Crime Risk
       type: number
-    Personal:
+    crime_personal:
       name: Personal
       title: Personal Crime Risk
       type: number
-    Murder:
+    crime_murder:
       name: Murder
       title: Murder Crime Risk
       type: number
-    Rape:
+    crime_rape:
       name: Rape
       title: Rape Crime Risk
       type: number
-    Robbery:
+    crime_robbery:
       name: Robbery
       title: Robbery Crime Risk
       type: number
-    Assault:
+    crime_assault:
       name: Assault
       title: Assault Crime Risk
       type: number
-    Property:
+    crime_property:
       name: Property
       title: Property Crime Risk
       type: number
-    Burglary:
+    crime_burglary:
       name: Burglary
       title: Burglary Crime Risk
       type: number
-    Theft:
+    crime_theft:
       name: Theft
       title: Theft Crime Risk
       type: number
-    MotVeh:
+    crime_motveh:
       name: MotVeh
       title: Motor Vehicle Crime Risk
       type: number
@@ -405,8 +415,6 @@ schema:
         - apartment, 4-19 units
         - apartment, 20-39 units
         - apartment, 40+ units
-        - nursing home / private hospital
-        - independent living (seniors)
         - mobile home / trailer park
         - other commercial housing
         - office / apartment over
@@ -421,7 +429,6 @@ schema:
         - lihtc res
         - other residential structure
         - metropolitan housing authority
-        - charities, hospitals, retir
     acreage:
       name: acreage
       title: Acreage
@@ -457,9 +464,20 @@ schema:
       description: May differ from the market_total_value from CAGIS auditor online
         data. This value is scraped from the auditor's website.
       type: number
+    parsed_zip_code:
+      description: five digit zipcode parsed from the cleaned address
+    hamilton_zip_code:
+      description: true if the majority of the parsed zip code is inside of Hamilton
+        County (taken from `cincy::zcta_tigris_2020`)
     n_violation:
       title: Number of housing violations
       description: Number of housing violations issued between 2014 and 2021
+    n_paint_violation:
+      title: Number of paint related violations
+      description: Number of paint related violations issued between 2014 and 2021
     any_housing_violation:
       title: Any housing violation issued
       description: Any housing violation issued between 2014 and 2021 (True/False)
+    any_paint_violation:
+      title: Any paint related violation issued
+      description: Any paint related violation issued between 2014 and 2021 (True/False)
