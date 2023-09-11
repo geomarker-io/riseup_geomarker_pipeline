@@ -257,46 +257,6 @@ schema:
     fraction_hs_moe:
       name: fraction_hs_moe
       type: number
-    Total:
-      name: Total
-      title: Total Crime Risk
-      type: number
-    Personal:
-      name: Personal
-      title: Personal Crime Risk
-      type: number
-    Murder:
-      name: Murder
-      title: Murder Crime Risk
-      type: number
-    Rape:
-      name: Rape
-      title: Rape Crime Risk
-      type: number
-    Robbery:
-      name: Robbery
-      title: Robbery Crime Risk
-      type: number
-    Assault:
-      name: Assault
-      title: Assault Crime Risk
-      type: number
-    Property:
-      name: Property
-      title: Property Crime Risk
-      type: number
-    Burglary:
-      name: Burglary
-      title: Burglary Crime Risk
-      type: number
-    Theft:
-      name: Theft
-      title: Theft Crime Risk
-      type: number
-    MotVeh:
-      name: MotVeh
-      title: Motor Vehicle Crime Risk
-      type: number
     crime_total:
       name: Total
       title: Total Crime Risk

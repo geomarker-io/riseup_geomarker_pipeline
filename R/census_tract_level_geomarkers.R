@@ -22,7 +22,7 @@ states <-
   tibble::as_tibble() |>
   select(-geometry)
 
-d_in$state <- states[s2_closest_feature(d$s2_geography, states$s2_geography), "GEOID", drop = TRUE]
+d_in$state <- states[s2_closest_feature(d_in$s2_geography, states$s2_geography), "GEOID", drop = TRUE]
 
 message("found ", scales::number(length(unique(na.omit(d_in$s2_geography))), big.mark = ","), " unique locations across ", length(unique(na.omit(d_in$state))), " states")
 
@@ -64,8 +64,7 @@ d_out <- left_join(d_out, hh_acs_2019, by = "census_tract_id")
 # AGS crime risk
 ags_crime_risk <- read_tdr_csv("https://github.com/geomarker-io/hamilton_crime_risk/releases/download/v0.1.0")
 names(ags_crime_risk) <- paste0("crime_", tolower(names(ags_crime_risk)))
-ags_crime_risk <- rename(ags_crime_risk, census_tract_id = crime_census_tract_id)
-d_out <- left_join(d_out, ags_crime_risk, by = "census_tract_id")
+d_out <- left_join(d_out, ags_crime_risk, by = c("census_tract_id" = "crime_census_tract_id"))
 
 # save
 d_out |>
