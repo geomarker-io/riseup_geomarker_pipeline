@@ -10,7 +10,7 @@ d <-
 readr::write_csv(d, "data/address_for_geocoding.csv")
 system2("docker",
         c("run", "--rm",
-          "-v ./data:/tmp",
+          "-v ${PWD}/data:/tmp",
           ifelse(grepl("darwin", version$os), # use alt tag for m1/m2 macs
                  "ghcr.io/degauss-org/geocoder:3.3.0-v8",
                  "ghcr.io/degauss-org/geocoder:3.3.0"),
