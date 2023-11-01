@@ -61,7 +61,14 @@ reticulate::py_install("usaddress", pip = TRUE)
 reticulate::py_install("dedupe", pip = TRUE)
 reticulate::py_install("dedupe-variable-address", pip = TRUE)
 ```
-4. Use `make` to create targets defined in `Makefile` or `make tdr` to create the final output as a tabular data resource. *`docker` is required to run the `geocode` and `geomark` targets.*
+4. Use `make` to create targets defined in `Makefile` or `make tdr` to create the final output as a tabular data resource. *`docker` is required to run the `geocode` and `geomark` targets.* 
+
+To specify the python executable to use for the pipeline without using R, set an environment variable in the shell being used to call `make`:
+
+```sh
+export RETICULATE_PYTHON=~/.virtualenvs/r-parcel/bin/python
+make all
+```
 
 *Notes:*
 
