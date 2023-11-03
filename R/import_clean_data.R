@@ -34,16 +34,21 @@ d <- d |>
                 title = "Raw Address",
                 description = "Address field created by concatenating PAT_ADDR_1, PAT_ADDR_2, PAT_CITY, PAT_STATE, PAT_ZIP")
 
-# clean and parse out unnecessary address components with parcel
+# tag address components
 d <- d |>
   mutate(address_tags = purrr::map(raw_address, parcel::tag_address, .progress = "tagging addresses")) |>
-  tidyr::unnest(cols = address_tags) |>
-  tidyr::unite("address", street_number, street_name, city, state, zip_code, remove = TRUE, na.rm = FALSE, sep = " ")
+  tidyr::unnest(cols = address_tags)
+
+# add hamilton_zip_code flag
+d <- mutate(d, hamilton_zip_code = zip_code %in% cincy::zcta_tigris_2020$zcta_2020)
+
+# add address created from components
+d <- tidyr::unite(d, "address", street_number, street_name, city, state, zip_code, remove = FALSE, na.rm = TRUE, sep = " ")
 
 d <- d |>
   add_col_attrs(address,
                 title = "Address",
-                description = "parsed address")
+                description = "clean address created by concatenating tagged components from `raw_address`")
 
 fs::dir_create("data")
 saveRDS(d, "data/cleaned_addresses.rds")

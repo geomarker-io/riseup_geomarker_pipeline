@@ -4,7 +4,7 @@ library(codec)
 
 d <-
   readRDS("data/cleaned_addresses.rds") |>
-  select(-raw_address)
+  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, address)
 
 # geocode
 readr::write_csv(d, "data/address_for_geocoding.csv")

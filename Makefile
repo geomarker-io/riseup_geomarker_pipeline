@@ -9,14 +9,14 @@ data/riseup_geomarker_pipeline_output.rds: DESCRIPTION data/cleaned_addresses.rd
 data/cleaned_addresses.rds: R/import_clean_data.R data/HospitalAdmissions.csv
 	Rscript R/import_clean_data.R
 
-data/parcel.rds: data/cleaned_addresses.rds R/parcel_geomarkers.R
-	Rscript R/parcel_geomarkers.R
-
 data/geocodes.rds: R/geocode.R data/cleaned_addresses.rds
 	Rscript R/geocode.R
 
 data/census_tract_level_data.rds: data/geocodes.rds R/census_tract_level_geomarkers.R
 	Rscript R/census_tract_level_geomarkers.R
+
+data/parcel.rds: data/cleaned_addresses.rds data/census_tract_level_data.rds R/parcel_geomarkers.R
+	Rscript R/parcel_geomarkers.R
 
 data/exact_location_geomarkers.rds: data/geocodes.rds R/exact_location_geomarkers.R
 	Rscript R/exact_location_geomarkers.R

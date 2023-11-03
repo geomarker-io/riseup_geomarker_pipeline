@@ -1,18 +1,36 @@
+## reticulate::use_virtualenv("r-parcel")
 library(parcel)
 library(dplyr, warn.conflicts = FALSE)
 library(codec)
 
 d <- readRDS("data/cleaned_addresses.rds")
+
+message(nrow(d), " observations")
+
+d <- d |>
+  filter(hamilton_zip_code) |>
+  select(PAT_ENC_CSN_ID, PAT_MRN_ID, HOSP_ADMSN_TIME, address)
+
+message(nrow(d), " observations with hamilton zip code")
+
+d_tract <-
+  readRDS("data/census_tract_level_data.rds") |>
+  select(PAT_ENC_CSN_ID, PAT_MRN_ID, HOSP_ADMSN_TIME, census_tract_id)
+d <- left_join(d, d_tract, by = c("PAT_ENC_CSN_ID", "PAT_MRN_ID", "HOSP_ADMSN_TIME"))
+
+d <- d |> filter(!is.na(census_tract_id))
+
+message(nrow(d), " observations with hamilton zip code, census_tract_id")
+
+d <- d |> filter(substr(census_tract_id, 1, 5) == "39061")
+
+message(nrow(d), " observations with hamilton zip code, census_tract_id, geocoded to Hamilton County")
+
 d_out <- d |> bind_cols(get_parcel_data(d$address))
 
-d_out$parsed_zip_code <- purrr::list_rbind(purrr::map(d_out$address, tag_address, .progress = "parsing zip codes"))$zip_code
-d_out <- add_col_attrs(d_out, parsed_zip_code, description = "five digit zipcode parsed from the cleaned address")
-d_out$hamilton_zip_code <- d_out$parsed_zip_code %in% cincy::zcta_tigris_2020$zcta_2020
-d_out <- add_col_attrs(d_out, hamilton_zip_code, description = "true if the majority of the parsed zip code is inside of Hamilton County (taken from `cincy::zcta_tigris_2020`)")
+message(nrow(filter(d_out, !is.na(parcel_id))), " observations with hamilton zip code, census_tract_id, geocoded to Hamilton County, matched with a parcel identifier")
 
-d_out |>
-  group_by(hamilton_zip_code, is.na(parcel_id)) |>
-  summarize(n = n())
+message("parcel match rate: ", round(nrow(filter(d_out, !is.na(parcel_id))) / nrow(d), digits = 3))
 
 # housing violation data
 d_violation <- codec::read_tdr_csv("https://github.com/geomarker-io/curated_violations/releases/download/0.1.2/tabular-data-resource.yaml") |>
@@ -56,6 +74,6 @@ d_out <- d_out |>
 
 d_out <-
   d_out |>
-  select(-raw_address, -address, -input_address)
+  select(-address, -census_tract_id, -input_address)
 
 saveRDS(d_out, "data/parcel.rds")
