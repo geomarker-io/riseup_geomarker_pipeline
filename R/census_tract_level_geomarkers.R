@@ -61,7 +61,7 @@ hh_acs_2019 <-
 
 d_out <- left_join(d_out, hh_acs_2019, by = "census_tract_id")
 
-# 2019 hh_acs_measures
+# tract_indices
 tract_indices <-
   read_tdr_csv("https://github.com/geomarker-io/tract_indices/releases/download/v0.3.0")
 

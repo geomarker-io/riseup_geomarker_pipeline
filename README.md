@@ -54,14 +54,15 @@ See the [metadata](data/riseup_geomarker_pipeline/tabular-data-resource.yaml) fo
 ## Running & Developing
 
 1. Clone github repository to destination; manually move input health data into place (`data/HospitalAdmissions.csv`)
-2. Install all packages from DESCRIPTION file by running `pak::pak()` *or* `remotes::install_deps()` in the project root from R. (If you are on a linux machine, speed up installation to use binaries hosted by Posit, by setting `options("repos" = c("CRAN" = "https://packagemanager.rstudio.com/all/__linux__/jammy/latest"))`, substituting `focal` for your specific linux version.)
-3. Install required python libraries. (Use `reticulate::py_config()` to check on available python environments):
+1. Install `pak` (`install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))`)
+1. Install all packages from DESCRIPTION file by running `pak::pak()` *or* `remotes::install_deps()` in the project root from R. (If you are on a linux machine, speed up installation to use binaries hosted by Posit, by setting `options("repos" = c("CRAN" = "https://packagemanager.rstudio.com/all/__linux__/jammy/latest"))`, substituting `jammy` for your specific linux version.)
+1. Install required python libraries. (Use `reticulate::py_config()` to check on available python environments):
 ```R
 reticulate::py_install("usaddress", pip = TRUE)
 reticulate::py_install("dedupe", pip = TRUE)
 reticulate::py_install("dedupe-variable-address", pip = TRUE)
 ```
-4. Use `make` to create targets defined in `Makefile` or `make tdr` to create the final output as a tabular data resource. *`docker` is required to run the `geocode` and `geomark` targets.* 
+1. Use `make` to create targets defined in `Makefile` or `make tdr` to create the final output as a tabular data resource. *`docker` is required to run the `geocode` and `geomark` targets.* 
 
 To specify the python executable to use for the pipeline without using R, set an environment variable in the shell being used to call `make`:
 
