@@ -1,10 +1,10 @@
 ## reticulate::use_virtualenv("r-parcel")
 library(parcel)
 library(dplyr, warn.conflicts = FALSE)
-library(codec)
+library(fr)
 
-d <- readRDS("data/cleaned_addresses.rds")
-
+rd <- readRDS("data/cleaned_addresses.rds")
+d <- tibble::as_tibble(rd)
 message(nrow(d), " observations")
 
 d <- d |>
@@ -15,6 +15,7 @@ message(nrow(d), " observations with hamilton zip code")
 
 d_tract <-
   readRDS("data/census_tract_level_data.rds") |>
+  tibble::as_tibble() |>
   select(PAT_ENC_CSN_ID, PAT_MRN_ID, HOSP_ADMSN_TIME, census_tract_id)
 d <- left_join(d, d_tract, by = c("PAT_ENC_CSN_ID", "PAT_MRN_ID", "HOSP_ADMSN_TIME"))
 
@@ -33,7 +34,11 @@ message(nrow(filter(d_out, !is.na(parcel_id))), " observations with hamilton zip
 message("parcel match rate: ", round(nrow(filter(d_out, !is.na(parcel_id))) / nrow(d), digits = 3))
 
 # housing violation data
-d_violation <- codec::read_tdr_csv("https://github.com/geomarker-io/curated_violations/releases/download/0.1.2/tabular-data-resource.yaml") |>
+rd_violation <- fr::read_fr_tdr("https://github.com/geomarker-io/curated_violations/releases/download/0.1.2/tabular-data-resource.yaml")
+
+d_violation <-
+  rd_violation |>
+  tibble::as_tibble() |>
   filter(date >= as.Date("2014-01-01") & date <= as.Date("2021-12-31")) |> 
   mutate(paint_violation = stringr::str_detect(violation_type, "PAINT")) |>
   group_by(parcel_number) |> 
@@ -58,22 +63,23 @@ d_out <-
     )
   )
 
-d_out <- d_out |>
-  add_col_attrs(n_violation,
+out <-
+  d_out |>
+  select(-address, -census_tract_id, -input_address) |>
+  as_fr_tdr(.template = rd) |>
+  update_field("n_violation",
                 title = "Number of housing violations",
                 description = "Number of housing violations issued between 2014 and 2021") |>
-  add_col_attrs(any_housing_violation,
+  update_field("any_housing_violation",
                 title = "Any housing violation issued",
                 description = "Any housing violation issued between 2014 and 2021 (True/False)") |>
-  add_col_attrs(n_paint_violation,
+  update_field("n_paint_violation",
                 title = "Number of paint related violations",
                 description = "Number of paint related violations issued between 2014 and 2021") |>
-  add_col_attrs(any_paint_violation,
+  update_field("any_paint_violation",
                 title = "Any paint related violation issued",
                 description = "Any paint related violation issued between 2014 and 2021 (True/False)") 
 
-d_out <-
-  d_out |>
-  select(-address, -census_tract_id, -input_address)
+out@name <- "parcel"
 
-saveRDS(d_out, "data/parcel.rds")
+saveRDS(out, "data/parcel.rds")
