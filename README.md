@@ -5,7 +5,7 @@ This is a pipeline for appending place- and date- based geomarker data from mult
 ```mermaid
 %%{init: { "fontFamily": "arial" } }%%
 
-graph LR
+graph TD
 
 classDef id fill:#fff,stroke:#000,stroke-width:1px;
 classDef input fill:#fff,stroke:#000,stroke-width:1px;
@@ -31,6 +31,7 @@ geocode -- geomarker \nassessment library --> pd
 
 parcel_data(tax auditor databases,\nhousing code violations,\nhousing health pedigree):::data
 parcel --join by parcel identifier--> parcel_data
+
 ```
 
 ## Data
