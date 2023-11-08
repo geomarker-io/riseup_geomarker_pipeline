@@ -2,6 +2,7 @@ library(dplyr, warn.conflicts = FALSE)
 
 d <-
   readRDS("data/cleaned_addresses.rds") |>
+  tibble::as_tibble() |>
   select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID)
 
 d_daily <-
