@@ -1,5 +1,4 @@
 library(dplyr, warn.conflicts = FALSE)
-library(codec)
 
 message("downloading pollen and mold data...")
 dir.create("tmp", showWarnings = FALSE)
@@ -52,19 +51,15 @@ d_pollen_mold <- left_join(d_pollen_calculations,
   d_mold_calculations,
   by = "date"
 ) |>
-  mutate(date = as.Date(date)) |>
-  add_col_attrs(date,
-    title = "Date",
-    description = "Date"
-  ) |>
-  add_col_attrs(pollen_total,
-    title = "Pollen Score",
-    description = "Pollen count (grains/cubic meter) * pollen factor"
-  ) |>
-  add_col_attrs(outdoor_mold_total,
-    title = "Outdoor Mold Score",
-    description = "Outdoor mold count (spores/cubic meter) * mold factor"
-  )
+  mutate(date = as.Date(date))
+
+## c(
+##   "pollen_total",
+##   description = "Pollen count (grains/cubic meter) * pollen factor"
+## )
+
+## c("outdoor_mold_total",
+##   description = "Outdoor mold count (spores/cubic meter) * mold factor")
 
 saveRDS(d_pollen_mold, "data-raw/daily_pollen_mold.rds")
 fs::dir_delete("tmp")
