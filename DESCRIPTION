@@ -15,7 +15,7 @@ Imports:
     fs,
     glue,
     httr,
-    parcel (>= 0.9.0),
+    parcel (>= 0.10.0),
     purrr,
     readr,
     readxl,
