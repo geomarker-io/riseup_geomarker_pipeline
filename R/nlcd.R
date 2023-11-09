@@ -57,4 +57,4 @@ out <-
     description = "2019 Average percent treecanopy of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
   )
 
-saveRDS(d, "data/nlcd.rds")
+saveRDS(out, "data/nlcd.rds")

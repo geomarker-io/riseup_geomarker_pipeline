@@ -9,7 +9,6 @@ URL: https://github.com/geomarker-io/riseup_geomarker_pipeline
 R.version: 4.3.0
 Imports: 
     cincy (>= 1.0.1),
-    dht (>= 1.2.3),
     fr (>= 0.4.0),
     dplyr,
     fs,
@@ -30,5 +29,4 @@ Imports:
 Remotes:  
     geomarker-io/cincy,
     cole-brokamp/fr,
-    geomarker-io/parcel,
-    degauss-org/dht
+    geomarker-io/parcel

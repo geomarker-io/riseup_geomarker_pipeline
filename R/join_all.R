@@ -1,5 +1,5 @@
 library(dplyr, warn.conflicts = FALSE)
-library(codec)
+library(fr)
 
 guid <- c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")
 
@@ -15,7 +15,10 @@ d <-
   fs::path("data", data_names, ext = "rds") |>
   purrr::map(readRDS, .progress = "reading intermediate targets") |>
   setNames(data_names) |>
-  purrr::reduce(left_join, by = guid)
+
+  # TODO how to merge metadata across all?
+
+  ## purrr::reduce(left_join, by = guid)
 
 # rename score from geocoder and score from parcel to unique names
 d <- d |>
@@ -23,7 +26,7 @@ d <- d |>
          score_parcel = score.y)
 
 d <- d |>
-  add_attrs(
+  as_fr_tdr(
     name = desc::desc_get("Package"),
     version = desc::desc_get("Version"),
     title = desc::desc_get("Title"),

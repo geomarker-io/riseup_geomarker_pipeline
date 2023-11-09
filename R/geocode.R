@@ -1,5 +1,4 @@
 library(dplyr, warn.conflicts = FALSE)
-library(dht)
 library(fr)
 
 rd <- readRDS("data/cleaned_addresses.rds")
@@ -16,7 +15,7 @@ system2(
   c(
     "run", "--rm",
     "-v ${PWD}/data:/tmp",
-    ifelse(grepl("darwin", version$os), # use alt tag for m1/m2 macs
+    ifelse(Sys.info()["machine"] == "arm64", # use alt tag for m1/m2 macs
       "ghcr.io/degauss-org/geocoder:3.3.0-v8",
       "ghcr.io/degauss-org/geocoder:3.3.0"
     ),
