@@ -10,6 +10,6 @@ d_daily <-
   purrr::map(readRDS) |>
   purrr::reduce(left_join, by = join_by(date))
 
-d <- left_join(d, d_daily, by = join_by(HOSP_ADMSN_TIME == date))
+out <- left_join(d, d_daily, by = join_by(HOSP_ADMSN_TIME == date))
 
-saveRDS(d, "data/daily.rds")
+saveRDS(out, "data/daily.rds")

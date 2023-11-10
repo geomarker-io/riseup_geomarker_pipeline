@@ -29,6 +29,9 @@ message(nrow(d), " observations with hamilton zip code, census_tract_id, geocode
 
 d_out <- d |> bind_cols(get_parcel_data(d$address))
 
+d_out <- d_out |>
+  rename(parcel_match_score = score)
+
 message(nrow(filter(d_out, !is.na(parcel_id))), " observations with hamilton zip code, census_tract_id, geocoded to Hamilton County, matched with a parcel identifier")
 
 message("parcel match rate: ", round(nrow(filter(d_out, !is.na(parcel_id))) / nrow(d), digits = 3))
