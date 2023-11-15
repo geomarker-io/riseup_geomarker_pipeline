@@ -1,7 +1,7 @@
 profile: tabular-data-resource
 name: riseup_geomarker_pipeline
 path: riseup_geomarker_pipeline.csv
-version: 1.3.0
+version: 2.0.0
 title: riseup_geomarker_pipeline
 homepage: https://github.com/geomarker-io/riseup_geomarker_pipeline
 description: |-

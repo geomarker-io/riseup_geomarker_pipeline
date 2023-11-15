@@ -18,8 +18,6 @@ d <-
   purrr::map(readRDS, .progress = "reading intermediate targets") |>
   setNames(data_names)
 
-readRDS("data/daily.rds")
-
 out <- d |>
   purrr::reduce(left_join, by = guid) |>
   as_fr_tdr(

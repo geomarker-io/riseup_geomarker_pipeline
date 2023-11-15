@@ -1,6 +1,6 @@
 Package: riseup_geomarker_pipeline
 Title: riseup_geomarker_pipeline
-Version: 1.3.0
+Version: 2.0.0
 Description: Input addresses from the electronic health record
     are cleaned, geocoded, geomarked, linked to parcel
     data, and linked to daily data. The data output is
