@@ -1,6 +1,6 @@
 library(dplyr, warn.conflicts = FALSE)
 library(readr)
-library(codec)
+library(fr)
 
 # read in raw admission data
 d <- read_csv("data/HospitalAdmissions.csv",
@@ -29,10 +29,7 @@ d <- d |>
     "raw_address",
     c(PAT_ADDR_1, PAT_ADDR_2, PAT_CITY, PAT_STATE, PAT_ZIP),
     sep = " ", na.rm = TRUE
-  ) |>
-  add_col_attrs(raw_address,
-                title = "Raw Address",
-                description = "Address field created by concatenating PAT_ADDR_1, PAT_ADDR_2, PAT_CITY, PAT_STATE, PAT_ZIP")
+  )
 
 # tag address components
 d <- d |>
@@ -45,10 +42,17 @@ d <- mutate(d, hamilton_zip_code = zip_code %in% cincy::zcta_tigris_2020$zcta_20
 # add address created from components
 d <- tidyr::unite(d, "address", street_number, street_name, city, state, zip_code, remove = FALSE, na.rm = TRUE, sep = " ")
 
-d <- d |>
-  add_col_attrs(address,
-                title = "Address",
-                description = "clean address created by concatenating tagged components from `raw_address`")
+out <-
+  as_fr_tdr(d, name = "cleaned_addresses") |>
+  update_field("raw_address", description = "Concatenation of `PAT_ADDR_1`, `PAT_ADDR_2`, `PAT_CITY`, `PAT_STATE`, `PAT_ZIP`") |>
+  update_field("address", description = "Concatenation of tagged address components") |>
+  update_field("street_number", description = "Tagged street number") |>
+  update_field("street_name", description = "Tagged street name") |>
+  update_field("city", description = "Tagged city") |>
+  update_field("state", description = "Tagged state") |>
+  update_field("zip_code", description = "First five digits of the tagged ZIP code") |>
+  update_field("street_number", description = "Tagged street number") |>
+  update_field("hamilton_zip_code", description = "TRUE if tagged ZIP code is in `cincy::zcta_tigris_2020`")
 
 fs::dir_create("data")
-saveRDS(d, "data/cleaned_addresses.rds")
+saveRDS(out, "data/cleaned_addresses.rds")

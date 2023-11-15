@@ -1,5 +1,5 @@
 library(dplyr, warn.conflicts = FALSE)
-library(codec)
+library(fr)
 library(cincy)
 library(s2)
 
@@ -10,8 +10,10 @@ s2_tracts <- function(state, year = 2019) {
     select(-geometry)
 }
 
+rd <- readRDS("data/geocodes.rds")
+
 d_in <-
-  readRDS("data/geocodes.rds") |>
+  tibble::as_tibble(rd) |>
   select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon) |>
   mutate(s2_geography = s2_geog_point(lon, lat))
 
@@ -45,34 +47,36 @@ d <-
            )) |>
   select(data, census_tract_id) |>
   tidyr::unnest(cols = c(data, census_tract_id)) |>
-  add_col_attrs(census_tract_id,
-                description = "2019 TIGER/Line census tract identifier for the 2010 decennial census") |>
   select(-s2_geography, -lat, -lon)
 
-d_out <- left_join(d_in, d, by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID"))
+d_out <- left_join(select(d_in, -state, -s2_geography, -lat, -lon), d, by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID"))
 
 d_out <- cincy::add_neighborhood(d_out, vintage = "2010")
 
-# 2019 hh_acs_measures
-hh_acs_2019 <-
-  read_tdr_csv("https://github.com/geomarker-io/hh_acs_measures/releases/download/v1.1.0") |>
-  filter(year == 2019) |>
-  select(-year, -census_tract_vintage)
-
-d_out <- left_join(d_out, hh_acs_2019, by = "census_tract_id")
-
+# 2019 hh_acs_measures and
 # tract_indices
-tract_indices <-
-  read_tdr_csv("https://github.com/geomarker-io/tract_indices/releases/download/v0.3.0")
-
-d_out <- left_join(d_out, tract_indices, by = "census_tract_id")
-
 # AGS crime risk
-ags_crime_risk <- read_tdr_csv("https://github.com/geomarker-io/hamilton_crime_risk/releases/download/v0.1.0")
+hh_acs_2019 <-
+  read_fr_tdr("https://github.com/geomarker-io/hh_acs_measures/releases/download/v1.1.0") |>
+  fr_filter(year == 2019) |>
+  fr_select(-year, -census_tract_vintage)
+tract_indices <- read_fr_tdr("https://github.com/geomarker-io/tract_indices/releases/download/v0.3.0")
+ags_crime_risk <- read_fr_tdr("https://github.com/geomarker-io/hamilton_crime_risk/releases/download/v0.1.0")
 names(ags_crime_risk) <- paste0("crime_", tolower(names(ags_crime_risk)))
-d_out <- left_join(d_out, ags_crime_risk, by = c("census_tract_id" = "crime_census_tract_id"))
 
-# save
-d_out |>
-  select(-lat, -lon, -s2_geography, -state) |>
-  saveRDS("data/census_tract_level_data.rds")
+d_out <-
+  d_out |>
+  left_join(hh_acs_2019, by = "census_tract_id") |>
+  left_join(tract_indices, by = "census_tract_id") |>
+  left_join(ags_crime_risk, by = c("census_tract_id" = "crime_census_tract_id"))
+
+out <-
+  d_out |>
+  as_fr_tdr(.template = rd) |>
+  update_field("census_tract_id", description = "2019 TIGER/Line census tract identifier for the 2010 decennial census") |>
+  update_field("neighborhood", description = "Neighborhood added based on 2010 vintage census tract identifiers in {cincy} package")
+
+out@name <- "census_tract_level_data"
+out@description <- "See schema for other variables at https://geomarker.io/hh_acs_measures and https://geomarker.io/tract_indices"
+
+saveRDS(out, "data/census_tract_level_data.rds")

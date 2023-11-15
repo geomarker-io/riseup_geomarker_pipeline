@@ -1,12 +1,12 @@
 library(dplyr, warn.conflicts = FALSE)
 library(sf)
-library(codec)
+library(fr)
 library(terra)
 
-d <- readRDS("data/geocodes.rds")
+rd <- readRDS("data/geocodes.rds")
 
 d_vect <-
-  d |>
+  tibble::as_tibble(rd) |>
   select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon) |>
   na.omit() |>
   distinct(.keep_all = TRUE) |>
@@ -27,7 +27,7 @@ impervious_raster <-
   terra::crop(roi)
 
 d_vect$pct_impervious_2019 <-
-  terra::extract(impervious_raster, d_vect, fun = "mean", ID = FALSE)[ , "Layer_1"] |>
+  terra::extract(impervious_raster, d_vect, fun = "mean", ID = FALSE)[, "Layer_1"] |>
   round(2)
 
 treecanopy_raster <-
@@ -36,19 +36,25 @@ treecanopy_raster <-
   terra::crop(roi)
 
 d_vect$pct_treecanopy_2019 <-
-  terra::extract(treecanopy_raster, d_vect, fun = "mean", ID = FALSE)[ , "Layer_1"] |>
+  terra::extract(treecanopy_raster, d_vect, fun = "mean", ID = FALSE)[, "Layer_1"] |>
   round(2)
 
-d <- d |>
+out <-
+  tibble::as_tibble(rd) |>
   select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID) |>
   left_join(as_tibble(d_vect), by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")) |>
-  add_col_attrs(pct_impervious_2019,
+  as_fr_tdr(.template = rd)
+out@name <- "nlcd"
+
+out <-
+  out |>
+  update_field("pct_impervious_2019",
     title = "Imperviousness (%)",
     description = "2019 Average percent impervious of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
   ) |>
-  add_col_attrs(pct_treecanopy_2019,
+  update_field("pct_treecanopy_2019",
     title = "Tree Canopy (%)",
     description = "2019 Average percent treecanopy of all 30x30m cells within a cirlce defined around each point with a 400 m radius"
   )
 
-saveRDS(d, "data/nlcd.rds")
+saveRDS(out, "data/nlcd.rds")
