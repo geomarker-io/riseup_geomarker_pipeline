@@ -2,31 +2,34 @@ library(dplyr, warn.conflicts = FALSE)
 library(readr)
 
 # read in raw admission data
-d <- read_csv("data/HospitalAdmissions.csv",
-  na = c("NA", "-", "NULL"),
+d <- read_csv("data/DR1767_r2.csv",
+  na = c("NA", "-", "NULL", "null"),
   col_types = cols_only(
-    PAT_MRN_ID = col_character(),
+    MRN = col_character(),
     PAT_ENC_CSN_ID = col_character(),
-    HOSP_ADMSN_TIME = col_date(),
-    PAT_ADDR_1 = col_character(),
-    PAT_ADDR_2 = col_character(),
-    PAT_CITY = col_character(),
-    PAT_STATE = col_character(),
-    PAT_ZIP = col_character()
+    ADMIT_DATE_TIME = col_character(),
+    ADDRESS = col_character(),
+    CITY = col_character(),
+    STATE = col_character(),
+    ZIP = col_character()
   )
-)
+) 
 
 # remove duplicated PAT_ENC_CSN_ID
-d <- filter(d, !duplicated(d$PAT_ENC_CSN_ID))
+d <- d |> 
+  filter(!duplicated(d$PAT_ENC_CSN_ID)) |> 
+  tidyr::separate(ADMIT_DATE_TIME, into = c("ADMIT_DATE", "ADMIT_TIME", "AMPM"), sep = " ") |> 
+  mutate(ADMIT_DATE = lubridate::mdy(ADMIT_DATE)) |> 
+  select(-ADMIT_TIME, -AMPM)
 
 # limit data to patients admitted between 1/1/2016 and 12/31/2021
-d <- d |> filter(HOSP_ADMSN_TIME >= as.Date("2016-01-01") & HOSP_ADMSN_TIME <= as.Date("2021-12-31"))
+d <- d |> filter(ADMIT_DATE >= as.Date("2016-01-01") & ADMIT_DATE <= as.Date("2021-12-31"))
 
 # create address from address components
 d <- d |>
   tidyr::unite(
     "raw_address",
-    c(PAT_ADDR_1, PAT_ADDR_2, PAT_CITY, PAT_STATE, PAT_ZIP),
+    c(ADDRESS, CITY, STATE, ZIP),
     sep = " ", na.rm = TRUE
   )
 
