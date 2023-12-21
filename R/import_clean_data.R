@@ -47,14 +47,13 @@ d <- tidyr::unite(d, "address", street_number, street_name, city, state, zip_cod
 
 out <-
   as_fr_tdr(d, name = "cleaned_addresses") |>
-  update_field("raw_address", description = "Concatenation of `PAT_ADDR_1`, `PAT_ADDR_2`, `PAT_CITY`, `PAT_STATE`, `PAT_ZIP`") |>
+  update_field("raw_address", description = "Concatenation of `ADDRESS`, `CITY`, `STATE`, `ZIP`") |>
   update_field("address", description = "Concatenation of tagged address components") |>
   update_field("street_number", description = "Tagged street number") |>
   update_field("street_name", description = "Tagged street name") |>
   update_field("city", description = "Tagged city") |>
   update_field("state", description = "Tagged state") |>
   update_field("zip_code", description = "First five digits of the tagged ZIP code") |>
-  update_field("street_number", description = "Tagged street number") |>
   update_field("hamilton_zip_code", description = "TRUE if tagged ZIP code is in `cincy::zcta_tigris_2020`")
 
 fs::dir_create("data")
