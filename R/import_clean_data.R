@@ -3,27 +3,27 @@ library(readr)
 library(fr)
 
 # read in raw admission data
+# warning messages are related to ADMIT_DATE_TIME values that are missing a time component
+# these are still parsed correctly as dates, despite the warnings
 d <- read_csv("data/DR1767_r2.csv",
   na = c("NA", "-", "NULL", "null"),
   col_types = cols_only(
     MRN = col_character(),
     PAT_ENC_CSN_ID = col_character(),
-    ADMIT_DATE_TIME = col_character(),
+    ADMIT_DATE_TIME = col_datetime(format = "%m/%d/%Y %I:%M:%S %p"),
     ADDRESS = col_character(),
     CITY = col_character(),
     STATE = col_character(),
     ZIP = col_character()
   )
-) 
+  ) |>
+  mutate(ADMIT_DATE = as.Date(ADMIT_DATE_TIME)) |>
+  select(-ADMIT_DATE_TIME)
 
 # remove duplicated PAT_ENC_CSN_ID
-d <- d |> 
-  filter(!duplicated(d$PAT_ENC_CSN_ID)) |> 
-  tidyr::separate(ADMIT_DATE_TIME, into = c("ADMIT_DATE", "ADMIT_TIME", "AMPM"), sep = " ") |> 
-  mutate(ADMIT_DATE = lubridate::mdy(ADMIT_DATE)) |> 
-  select(-ADMIT_TIME, -AMPM)
+d <- d |> filter(!duplicated(d$PAT_ENC_CSN_ID))
 
-# limit data to patients admitted between 1/1/2016 and 12/31/2021
+# limit data to patients encountered between 1/1/2016 and 12/31/2021
 d <- d |> filter(ADMIT_DATE >= as.Date("2016-01-01") & ADMIT_DATE <= as.Date("2021-12-31"))
 
 # create address from address components
