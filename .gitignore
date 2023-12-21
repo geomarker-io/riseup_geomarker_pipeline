@@ -4,3 +4,4 @@ data/*/*.csv
 data/*.rds
 nlcd_downloads/
 .DS_Store
+/data/geocoding_cache/

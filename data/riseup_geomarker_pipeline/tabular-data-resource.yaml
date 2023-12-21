@@ -1,7 +1,7 @@
 profile: tabular-data-resource
 name: riseup_geomarker_pipeline
 path: riseup_geomarker_pipeline.csv
-version: 1.1.0
+version: 2.0.0
 title: riseup_geomarker_pipeline
 homepage: https://github.com/geomarker-io/riseup_geomarker_pipeline
 description: |-
@@ -11,392 +11,524 @@ description: |-
       a tabular data resource (csv file).
 schema:
   fields:
-    aqi:
-      title: AQI
-      description: Air Quality Index for Hamilton County, Ohio
+    PAT_ENC_CSN_ID:
+      name: PAT_ENC_CSN_ID
+      type: string
+    HOSP_ADMSN_TIME:
+      name: HOSP_ADMSN_TIME
+      type: date
+    raw_address:
+      name: raw_address
+      type: string
+      description: Concatenation of `PAT_ADDR_1`, `PAT_ADDR_2`, `PAT_CITY`, `PAT_STATE`,
+        `PAT_ZIP`
+    PAT_MRN_ID:
+      name: PAT_MRN_ID
+      type: string
+    address:
+      name: address
+      type: string
+      description: Concatenation of tagged address components
+    street_number:
+      name: street_number
+      type: string
+      description: Tagged street number
+    street_name:
+      name: street_name
+      type: string
+      description: Tagged street name
+    city:
+      name: city
+      type: string
+      description: Tagged city
+    state:
+      name: state
+      type: string
+      description: Tagged state
+    zip_code:
+      name: zip_code
+      type: string
+      description: First five digits of the tagged ZIP code
+    hamilton_zip_code:
+      name: hamilton_zip_code
+      type: boolean
+      description: TRUE if tagged ZIP code is in `cincy::zcta_tigris_2020`
+    matched_street:
+      name: matched_street
+      type: string
+    matched_zip:
+      name: matched_zip
+      type: number
+    matched_city:
+      name: matched_city
+      type: string
+    matched_state:
+      name: matched_state
+      type: string
+    lat:
+      name: lat
+      type: number
+      description: geocoded latitude coordinate
+    lon:
+      name: lon
+      type: number
+      description: geocoded longitude coordinate
+    score:
+      name: score
+      type: number
+      description: The percentage of text match between the given address and the
+        geocoded result, expressed as a number between 0 and 1. A higher score indicates
+        a closer match. Note that each score is relative within a precision method
+        (i.e. a score of 0.8 with a precision of range is not the same as a score
+        of 0.8 with a precision of street)
+    precision:
+      name: precision
+      type: string
+      description: 'The method/precision of the geocode; one of `range`: interpolated
+        based on address ranges from street segments, `street`: center of the matched
+        street, `intersection`: intersection of two streets, `zip`: centroid of the
+        matched zip code, `city`: centroid of the matched city'
+    geocode_result:
+      name: geocode_result
+      type: string
+      description: 'character string summarizing the geocoding result (geocoded: the
+        address was geocoded with a precision of either range or street and a score
+        of 0.5 or greater; imprecise_geocode: the address was geocoded, but results
+        were suppressed because the precision was intersection, zip, or city and/or
+        the score was less than 0.5; po_box: the address was not geocoded because
+        it is a PO Box; cincy_inst_foster_addr: the address was not geocoded because
+        it is a known institutional address, not a residential address; non_address_text:
+        the address was not geocoded because it was blank or listed as ''foreign'',
+        ''verify'', or ''unknown'')'
+    aqi_hamilton:
+      name: aqi_hamilton
+      type: number
     pollen_total:
-      title: Pollen Score
-      description: Pollen count (grains/cubic meter) * pollen factor
+      name: pollen_total
+      type: number
     outdoor_mold_total:
-      title: Outdoor Mold Score
-      description: Outdoor mold count (spores/cubic meter) * mold factor
+      name: outdoor_mold_total
+      type: number
     wind_speed:
-      title: Wind Speed
-      description: Wind Speed
+      name: wind_speed
+      type: number
     wind_direction:
-      title: Wind Direction
-      description: Wind Direction
+      name: wind_direction
+      type: number
     outdoor_temp:
-      title: Outdoor Temperature
-      description: Outdoor Temperature
+      name: outdoor_temp
+      type: number
     relative_humidity:
-      title: Relative Humidity
-      description: Relative Humidity
+      name: relative_humidity
+      type: number
+    evi_750:
+      name: evi_750
+      type: number
+      title: Enhanced Vegetation Index (750m)
+      description: average enhanced vegetation index from June 2018 within a 750 meter
+        buffer radius
+    drive_time:
+      name: drive_time
+      type: string
+      title: Drive Time to CCHMC
+      description: drive time in minutes (in 6 minute intervals, ">60" if more than
+        1 hour drive time)
+      constraints:
+        enum:
+        - '12'
+        - '54'
+        - '> 60'
+        - '36'
+        - '24'
+        - '42'
+        - '18'
+        - '48'
+        - '30'
+        - '60'
+        - '6'
+    distance:
+      name: distance
+      type: number
+      title: Distance to CCHMC
+      description: distance in meters
+    aadt_m_truck:
+      name: aadt_m_truck
+      type: number
+      title: Average Annual Daily Traffic-Meters (Trucks) within 400m
+    aadt_m_nontruck:
+      name: aadt_m_nontruck
+      type: number
+      title: Average Annual Daily Traffic-Meters (Non-Trucks) within 400m
+    pct_impervious_2019:
+      name: pct_impervious_2019
+      type: number
+      title: Imperviousness (%)
+      description: 2019 Average percent impervious of all 30x30m cells within a cirlce
+        defined around each point with a 400 m radius
+    pct_treecanopy_2019:
+      name: pct_treecanopy_2019
+      type: number
+      title: Tree Canopy (%)
+      description: 2019 Average percent treecanopy of all 30x30m cells within a cirlce
+        defined around each point with a 400 m radius
+    census_tract_id:
+      name: census_tract_id
+      type: string
+      description: 2019 TIGER/Line census tract identifier for the 2010 decennial
+        census
+    neighborhood:
+      name: neighborhood
+      type: string
+      description: Neighborhood added based on 2010 vintage census tract identifiers
+        in {cincy} package
     fraction_poverty:
       name: fraction_poverty
-      title: Fraction of Households in Poverty
-      description: Fraction of households with income below poverty level within the
-        past 12 months
       type: number
     fraction_poverty_moe:
       name: fraction_poverty_moe
       type: number
     n_children_lt18:
       name: n_children_lt18
-      type: integer
+      type: number
     n_children_lt18_moe:
       name: n_children_lt18_moe
-      type: integer
+      type: number
     n_pop:
       name: n_pop
-      type: integer
+      type: number
     n_pop_moe:
       name: n_pop_moe
-      type: integer
+      type: number
     n_household_lt18:
       name: n_household_lt18
-      type: integer
+      type: number
     n_household_lt18_moe:
       name: n_household_lt18_moe
-      type: integer
+      type: number
     n_household:
       name: n_household
-      type: integer
+      type: number
     n_household_moe:
       name: n_household_moe
-      type: integer
+      type: number
     fraction_insured:
       name: fraction_insured
-      title: Fraction of People Insured
-      description: Fraction of population with health insurance (available from 2012
-        onwards only)
       type: number
     fraction_insured_moe:
       name: fraction_insured_moe
       type: number
     fraction_snap:
       name: fraction_snap
-      title: Fraction of Households Receiving SNAP
-      description: Fraction of households receiving food stamps/SNAP in the past 12
-        months
       type: number
     fraction_snap_moe:
       name: fraction_snap_moe
       type: number
     fraction_fam_nospouse:
       name: fraction_fam_nospouse
-      title: Fraction of family households with a single householder
-      description: Single householder is male or female household, with no spouse
-        present
       type: number
     fraction_fam_nospouse_moe:
       name: fraction_fam_nospouse_moe
       type: number
     fraction_employment:
       name: fraction_employment
-      title: Fraction of People Employed
-      description: Fraction of people employed in civilian labor force
       type: number
     fraction_employment_moe:
       name: fraction_employment_moe
       type: number
     n_housing_units:
       name: n_housing_units
-      type: integer
+      type: number
     n_housing_units_moe:
       name: n_housing_units_moe
-      type: integer
+      type: number
     median_home_value:
       name: median_home_value
-      title: Median Value of Owner-Occupied Housing Units
       type: number
     median_home_value_moe:
       name: median_home_value_moe
       type: number
     median_home_value_2010adj:
       name: median_home_value_2010adj
-      title: Median Value of Owner-Occupied Housing Units (in 2010 USD)
       type: number
     fraction_housing_renters:
       name: fraction_housing_renters
-      title: Fraction of Housing Units Occupied by Renters
-      description: fraction denominator is number of *occupied* housing units
       type: number
     fraction_housing_renters_moe:
       name: fraction_housing_renters_moe
       type: number
     median_rent_to_income_percentage:
       name: median_rent_to_income_percentage
-      title: Median Rent to Income Percentage
-      description: The median of the percentage of rent to income among all renter-occupied
-        housing units
       type: number
     median_rent_to_income_percentage_moe:
       name: median_rent_to_income_percentage_moe
       type: number
     fraction_high_rent:
       name: fraction_high_rent
-      title: Fraction of Housing Units Paying at least 30% of Income on Rent
       type: number
     fraction_high_rent_moe:
       name: fraction_high_rent_moe
       type: number
     fraction_conditions:
       name: fraction_conditions
-      title: Fraction of Housing Units with Substandard Housing Conditions
-      description: 'substandard housing: incomplete plumbing or kitchens, overcrowding,
-        30% or more of household income spent on rent or owner costs'
       type: number
     fraction_conditions_moe:
       name: fraction_conditions_moe
       type: number
     fraction_builtbf1970:
       name: fraction_builtbf1970
-      title: Fraction of Housing Units Built Before 1970
       type: number
     fraction_builtbf1970_moe:
       name: fraction_builtbf1970_moe
       type: number
     fraction_vacant:
       name: fraction_vacant
-      title: Fraction of Housing Units that are Vacant
       type: number
     fraction_vacant_moe:
       name: fraction_vacant_moe
       type: number
     fraction_nhl:
       name: fraction_nhl
-      title: Fraction of People Not Hispanic/Latino
       type: number
     fraction_nhl_moe:
       name: fraction_nhl_moe
       type: number
     fraction_nhl_w:
       name: fraction_nhl_w
-      title: Fraction of People White and Not Hispanic/Latino
       type: number
     fraction_nhl_w_moe:
       name: fraction_nhl_w_moe
       type: number
     fraction_nhl_b:
       name: fraction_nhl_b
-      title: Fraction of People Black and Not Hispanic/Latino
       type: number
     fraction_nhl_b_moe:
       name: fraction_nhl_b_moe
       type: number
     fraction_nhl_o:
       name: fraction_nhl_o
-      title: Fraction of People Not Black, Not White, and Not Hispanic/Latino
       type: number
     fraction_nhl_o_moe:
       name: fraction_nhl_o_moe
       type: number
     fraction_hl:
       name: fraction_hl
-      title: Fraction of People Hispanic/Latino
       type: number
     fraction_hl_moe:
       name: fraction_hl_moe
       type: number
     fraction_hl_w:
       name: fraction_hl_w
-      title: Fraction of People White and Hispanic/Latino
       type: number
     fraction_hl_w_moe:
       name: fraction_hl_w_moe
       type: number
     fraction_hl_b:
       name: fraction_hl_b
-      title: Fraction of People Black and Hispanic/Latino
       type: number
     fraction_hl_b_moe:
       name: fraction_hl_b_moe
       type: number
     fraction_hl_o:
       name: fraction_hl_o
-      title: Fraction of People Not Black, Not White, and Hispanic/Latino
       type: number
     fraction_hl_o_moe:
       name: fraction_hl_o_moe
       type: number
     fraction_lesh:
       name: fraction_lesh
-      title: Fraction of Households Speaking Limited English
-      description: Available from 2016 onwards
       type: number
     fraction_lesh_moe:
       name: fraction_lesh_moe
       type: number
     median_income:
       name: median_income
-      title: Median Household Income
       type: number
     median_income_moe:
       name: median_income_moe
       type: number
     median_income_2010adj:
       name: median_income_2010adj
-      title: Median Household Income (in 2010 USD)
       type: number
     fraction_hs:
       name: fraction_hs
-      title: Fraction of Adults with At Least High School Education
-      description: Available from 2012 onwards
       type: number
     fraction_hs_moe:
       name: fraction_hs_moe
       type: number
-    Total:
-      name: Total
-      title: Total Crime Risk
+    adi:
+      name: adi
       type: number
-    Personal:
-      name: Personal
-      title: Personal Crime Risk
+    coi_education:
+      name: coi_education
       type: number
-    Murder:
-      name: Murder
-      title: Murder Crime Risk
+    coi_health_env:
+      name: coi_health_env
       type: number
-    Rape:
-      name: Rape
-      title: Rape Crime Risk
+    coi_social_econ:
+      name: coi_social_econ
       type: number
-    Robbery:
-      name: Robbery
-      title: Robbery Crime Risk
+    coi:
+      name: coi
       type: number
-    Assault:
-      name: Assault
-      title: Assault Crime Risk
+    dep_index_fraction_assisted_income:
+      name: dep_index_fraction_assisted_income
       type: number
-    Property:
-      name: Property
-      title: Property Crime Risk
+    dep_index_fraction_high_school_edu:
+      name: dep_index_fraction_high_school_edu
       type: number
-    Burglary:
-      name: Burglary
-      title: Burglary Crime Risk
+    dep_index_median_income:
+      name: dep_index_median_income
       type: number
-    Theft:
-      name: Theft
-      title: Theft Crime Risk
+    dep_index_fraction_no_health_ins:
+      name: dep_index_fraction_no_health_ins
       type: number
-    MotVeh:
-      name: MotVeh
-      title: Motor Vehicle Crime Risk
+    dep_index_fraction_poverty:
+      name: dep_index_fraction_poverty
       type: number
-    pct_impervious_2019:
-      title: Imperviousness (%)
-      description: 2019 Average percent impervious of all 30x30m cells within a cirlce
-        defined around each point with a 400 m radius
-    pct_treecanopy_2019:
-      title: Tree Canopy (%)
-      description: 2019 Average percent treecanopy of all 30x30m cells within a cirlce
-        defined around each point with a 400 m radius
-    length_stop_go:
-      name: length_stop_go
-      title: Length of Roads with Stop and Go Traffic
-      description: total length of arterial roads (meters) within 400 m
+    dep_index_fraction_vacant_housing:
+      name: dep_index_fraction_vacant_housing
       type: number
-    length_moving:
-      name: length_moving
-      title: Length of Roads with Moving Traffic
-      description: total length of interstates, expressways, and freeways (meters)
-        within 400 m
+    dep_index:
+      name: dep_index
       type: number
-    vehicle_meters_stop_go:
-      name: vehicle_meters_stop_go
-      title: Stop and Go Traffic (vehicle-m)
-      description: average daily number of vehicles multiplied by the length of arterial
-        roads (vehicle-meters)
+    lead_paint:
+      name: lead_paint
       type: number
-    vehicle_meters_moving:
-      name: vehicle_meters_moving
-      title: Moving Traffic (vehicle-m)
-      description: average daily number of vehicles multiplied by the length of interstates,
-        expressways, and freeways (vehicle-meters)
+    diesel_pm:
+      name: diesel_pm
       type: number
-    truck_meters_stop_go:
-      name: truck_meters_stop_go
-      title: Stop and Go Truck Traffic (truck-m)
-      description: average daily number of trucks multiplied by the length of arterial
-        roads (truck-meters)
+    cancer_risk:
+      name: cancer_risk
       type: number
-    truck_meters_moving:
-      name: truck_meters_moving
-      title: Moving Truck Traffic (truck-m)
-      description: average daily number of trucks multiplied by the length of interstates,
-        expressways, and freeways (truck-meters)
+    resp_hazard_ind:
+      name: resp_hazard_ind
       type: number
-    evi_500:
-      name: evi_500
-      title: EVI (500m buffer)
-      description: average enhanced vegetation index within a 500 meter buffer radius
+    traffic_proximity:
+      name: traffic_proximity
       type: number
-    evi_1500:
-      name: evi_1500
-      title: EVI (1500m buffer)
-      description: average enhanced vegetation index within a 1500 meter buffer radius
+    major_discharger_water:
+      name: major_discharger_water
       type: number
-    evi_2500:
-      name: evi_2500
-      title: EVI (2500m buffer)
-      description: average enhanced vegetation index within a 2500 meter buffer radius
+    nat_priority_proximity:
+      name: nat_priority_proximity
       type: number
-    drive_time:
-      name: drive_time
-      title: Drive Time to CCHMC
-      description: drive time in minutes (in 6 minute intervals, ">60" if more than
-        1 hour drive time)
+    risk_management_proximity:
+      name: risk_management_proximity
+      type: number
+    disposal_proximity:
+      name: disposal_proximity
+      type: number
+    ozone_conc:
+      name: ozone_conc
+      type: number
+    pm_conc:
+      name: pm_conc
+      type: number
+    low_food_access_flag:
+      name: low_food_access_flag
+      type: boolean
+    low_food_access_pop:
+      name: low_food_access_pop
+      type: number
+    low_food_access_pct:
+      name: low_food_access_pct
+      type: number
+    food_insecurity_pct:
+      name: food_insecurity_pct
+      type: number
+    hpsa_mh:
+      name: hpsa_mh
+      type: boolean
+    hpsa_pc:
+      name: hpsa_pc
+      type: boolean
+    ice:
+      name: ice
+      type: number
+    pct_crowding:
+      name: pct_crowding
+      type: number
+    mrfei:
+      name: mrfei
+      type: number
+    mua:
+      name: mua
+      type: boolean
+    pct_1or2_risk_factors:
+      name: pct_1or2_risk_factors
+      type: number
+    pct_3ormore_risk_factors:
+      name: pct_3ormore_risk_factors
+      type: number
+    sdi:
+      name: sdi
+      type: number
+    svi_socioeconomic:
+      name: svi_socioeconomic
+      type: number
+    svi_household_comp:
+      name: svi_household_comp
+      type: number
+    svi_minority:
+      name: svi_minority
+      type: number
+    svi_housing_transportation:
+      name: svi_housing_transportation
+      type: number
+    svi:
+      name: svi
+      type: number
+    walkability_index:
+      name: walkability_index
+      type: number
+    crime_total:
+      name: crime_total
+      type: number
+    crime_personal:
+      name: crime_personal
+      type: number
+    crime_murder:
+      name: crime_murder
+      type: number
+    crime_rape:
+      name: crime_rape
+      type: number
+    crime_robbery:
+      name: crime_robbery
+      type: number
+    crime_assault:
+      name: crime_assault
+      type: number
+    crime_property:
+      name: crime_property
+      type: number
+    crime_burglary:
+      name: crime_burglary
+      type: number
+    crime_theft:
+      name: crime_theft
+      type: number
+    crime_motveh:
+      name: crime_motveh
+      type: number
+    parcel_id:
+      name: parcel_id
       type: string
-    distance:
-      name: distance
-      title: Distance to CCHMC
-      description: distance in meters
+    parcel_match_score:
+      name: parcel_match_score
       type: number
     parcel_address:
       name: parcel_address
-      title: Parcel Address
-      description: derived by pasting Property Address Number, Street, and Suffix
       type: string
-    property_addr_number:
-      name: property_addr_number
-      title: Address Number
+    parcel_addr_number:
+      name: parcel_addr_number
       type: string
-    property_addr_street:
-      name: property_addr_street
-      title: Address Street
+    parcel_addr_street:
+      name: parcel_addr_street
       type: string
-    property_addr_suffix:
-      name: property_addr_suffix
-      title: Address Suffix
+    parcel_addr_suffix:
+      name: parcel_addr_suffix
       type: string
-    condo_id:
-      name: condo_id
-      title: Condo identifier
-      description: used to match two parcels to the same building of condos
-      type: string
-    condo_unit:
-      name: condo_unit
-      title: Condo unit
-      description: specifies a specific unit within a building of condos
-      type: string
-    parcel_centroid_lat:
-      name: parcel_centroid_lat
-      title: Parcel Centroid Latitude
-      description: coordinates derived from centroid of parcel shape
-      type: number
-    parcel_centroid_lon:
-      name: parcel_centroid_lon
-      title: Parcel Centroid Longitude
-      description: coordinates derived from centroid of parcel shape
-      type: number
-    market_total_value:
-      name: market_total_value
-      title: Market Total Value
-      type: number
     land_use:
       name: land_use
       type: string
@@ -405,8 +537,6 @@ schema:
         - apartment, 4-19 units
         - apartment, 20-39 units
         - apartment, 40+ units
-        - nursing home / private hospital
-        - independent living (seniors)
         - mobile home / trailer park
         - other commercial housing
         - office / apartment over
@@ -421,45 +551,59 @@ schema:
         - lihtc res
         - other residential structure
         - metropolitan housing authority
-        - charities, hospitals, retir
+    condo_id:
+      name: condo_id
+      type: string
+    condo_unit:
+      name: condo_unit
+      type: string
+    market_total_value:
+      name: market_total_value
+      type: number
     acreage:
       name: acreage
-      title: Acreage
       type: number
     homestead:
       name: homestead
-      title: Homestead
       type: boolean
     rental_registration:
       name: rental_registration
-      title: Rental Registration
-      type: boolean
-    RED_25_FLAG:
-      name: RED_25_FLAG
       type: boolean
     year_built:
       name: year_built
-      type: integer
+      type: number
     n_total_rooms:
       name: n_total_rooms
-      type: integer
+      type: number
     n_bedrooms:
       name: n_bedrooms
-      type: integer
+      type: number
     n_full_bathrooms:
       name: n_full_bathrooms
-      type: integer
+      type: number
     n_half_bathrooms:
       name: n_half_bathrooms
-      type: integer
+      type: number
     online_market_total_value:
       name: online_market_total_value
-      description: May differ from the market_total_value from CAGIS auditor online
-        data. This value is scraped from the auditor's website.
       type: number
     n_violation:
+      name: n_violation
+      type: number
       title: Number of housing violations
       description: Number of housing violations issued between 2014 and 2021
+    n_paint_violation:
+      name: n_paint_violation
+      type: number
+      title: Number of paint related violations
+      description: Number of paint related violations issued between 2014 and 2021
     any_housing_violation:
+      name: any_housing_violation
+      type: boolean
       title: Any housing violation issued
       description: Any housing violation issued between 2014 and 2021 (True/False)
+    any_paint_violation:
+      name: any_paint_violation
+      type: boolean
+      title: Any paint related violation issued
+      description: Any paint related violation issued between 2014 and 2021 (True/False)

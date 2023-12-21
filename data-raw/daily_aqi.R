@@ -1,5 +1,4 @@
 library(dplyr, warn.conflicts = FALSE)
-library(codec)
 
 get_daily_county_aqi <- function(year) {
   dest_file <- glue::glue("daily_county_aqi_{year}.zip")
@@ -12,22 +11,12 @@ get_daily_county_aqi <- function(year) {
     filter(`State Name` == "Ohio" & `county Name` == "Hamilton") |>
     transmute(
       date = as.Date(Date),
-      aqi = AQI
+      aqi_hamilton = AQI
     )
   on.exit(unlink(dest_file))
   return(d)
 }
 
 out <- purrr::map_dfr(2015:2022, get_daily_county_aqi, .progress = "getting daily county aqi")
-
-out <- out |>
-  add_col_attrs(date,
-    title = "Date",
-    description = "Date"
-  ) |>
-  add_col_attrs(aqi,
-    title = "AQI",
-    description = "Air Quality Index for Hamilton County, Ohio"
-  )
 
 saveRDS(out, "data-raw/daily_aqi.rds")

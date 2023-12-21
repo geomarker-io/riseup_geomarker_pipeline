@@ -1,6 +1,5 @@
 library(dplyr, warn.conflicts = FALSE)
 library(readr)
-library(codec)
 
 download_weather <- function(var, year) {
   download.file(glue::glue("https://aqs.epa.gov/aqsweb/airdata/daily_{var}_{year}.zip"),
@@ -37,26 +36,6 @@ weather <- weather |>
     wind_direction = `Wind Direction - Resultant`,
     outdoor_temp = `Outdoor Temperature`,
     relative_humidity = `Relative Humidity`
-  ) |>
-  add_col_attrs(date,
-    title = "Date",
-    description = "Date"
-  ) |>
-  add_col_attrs(wind_speed,
-    title = "Wind Speed",
-    description = "Wind Speed"
-  ) |>
-  add_col_attrs(wind_direction,
-    title = "Wind Direction",
-    description = "Wind Direction"
-  ) |>
-  add_col_attrs(outdoor_temp,
-    title = "Outdoor Temperature",
-    description = "Outdoor Temperature"
-  ) |>
-  add_col_attrs(relative_humidity,
-    title = "Relative Humidity",
-    description = "Relative Humidity"
   )
 
 saveRDS(weather, "data-raw/daily_weather.rds")
