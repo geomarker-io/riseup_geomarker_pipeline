@@ -5,7 +5,7 @@ rd <- readRDS("data/geocodes.rds")
 
 d_in <-
   tibble::as_tibble(rd) |>
-  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon)
+  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, lat, lon)
 
 d <- na.omit(d_in)
 
@@ -28,8 +28,8 @@ d <-
   readr::read_csv("data/coordinates_for_drivetime_drivetime_1.3.0_cchmc.csv", col_types = readr::cols(
     # TODO I messed up the tags for the v8 version; why does it name version 1.3 when using tag 1.2 of the docker image?
     PAT_ENC_CSN_ID = readr::col_character(),
-    HOSP_ADMSN_TIME = readr::col_date(format = "%Y-%m-%d"),
-    PAT_MRN_ID = readr::col_character(),
+    ADMIT_DATE = readr::col_date(format = "%Y-%m-%d"),
+    MRN = readr::col_character(),
     drive_time = readr::col_factor(),
     distance = readr::col_double(),
     lat = readr::col_double(),
@@ -39,7 +39,7 @@ d <-
 out <-
   left_join(select(d_in, -lat, -lon),
             select(d, -lat, -lon),
-            by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")) |>
+            by = c("PAT_ENC_CSN_ID", "ADMIT_DATE", "MRN")) |>
   as_fr_tdr(.template = rd) |>
   update_field("drive_time",
     title = "Drive Time to CCHMC",

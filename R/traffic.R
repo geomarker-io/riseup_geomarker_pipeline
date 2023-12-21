@@ -6,7 +6,7 @@ rd <- readRDS("data/geocodes.rds")
 
 d <-
   tibble::as_tibble(rd) |>
-  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon) |>
+  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, lat, lon) |>
   na.omit() |>
   mutate(s2 = as_s2_cell(s2_geog_point(lon, lat))) |>
   distinct(s2) |>
@@ -91,7 +91,7 @@ out <-
 
 out <-
   tibble::as_tibble(rd) |>
-  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon) |>
+  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, lat, lon) |>
   mutate(s2 = as_s2_cell(s2_geog_point(lon, lat))) |>
   select(-lat, -lon) |>
   left_join(d, by = "s2") |>

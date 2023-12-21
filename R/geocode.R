@@ -6,7 +6,7 @@ rd <- readRDS("data/cleaned_addresses.rds")
 d <-
   rd |>
   tibble::as_tibble() |>
-  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, address)
+  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, address)
 
 # geocode
 readr::write_csv(d, "data/address_for_geocoding.csv")
@@ -25,8 +25,8 @@ system2(
 d <-
   readr::read_csv("data/address_for_geocoding_geocoder_3.3.0_score_threshold_0.5.csv", col_types = readr::cols(
     PAT_ENC_CSN_ID = readr::col_character(),
-    HOSP_ADMSN_TIME = readr::col_date(format = "%Y-%m-%d"),
-    PAT_MRN_ID = readr::col_character(),
+    ADMIT_DATE = readr::col_date(format = "%Y-%m-%d"),
+    MRN = readr::col_character(),
     address = readr::col_character(),
     matched_street = readr::col_character(),
     matched_zip = readr::col_double(),

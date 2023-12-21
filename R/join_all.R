@@ -1,7 +1,7 @@
 library(dplyr, warn.conflicts = FALSE)
 library(fr)
 
-guid <- c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")
+guid <- c("PAT_ENC_CSN_ID", "ADMIT_DATE", "MRN")
 
 data_names <- c("cleaned_addresses",
                 "geocodes",
