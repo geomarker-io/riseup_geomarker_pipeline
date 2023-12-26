@@ -1,26 +1,8 @@
-library(dplyr, warn.conflicts = FALSE)
-library(fr, warn.conflicts = FALSE)
-library(s2)
-
-rd <- readRDS("data/geocodes.rds")
-
-d <-
-  tibble::as_tibble(rd) |>
-  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, lat, lon) |>
-  na.omit() |>
-  mutate(s2 = as_s2_cell(s2_geog_point(lon, lat))) |>
-  distinct(s2) |>
-  mutate(s2_geography = as_s2_geography(s2_cell_to_lnglat(s2)))
-
-# highway performance monitoring system data
-# https://www.fhwa.dot.gov/policyinformation/hpms.cfm
-# downloads to R_user_dir
-## fs::dir_info(tools::R_user_dir("s3", "data"), recurse = TRUE)
-get_traffic <- function() {
-  hpms_file_path <- fs::path(tools::R_user_dir("s3", "data"), "hpms_2017.gpkg")
-  if (file.exists(hpms_file_path)) {
-    return(hpms_file_path)
-  }
+#' installs traffic data into user's data directory for the `appc` package
+#' @references https://www.fhwa.dot.gov/policyinformation/hpms.cfm
+install_traffic <- function() {
+  dest_file <- fs::path(tools::R_user_dir("appc", "data"), "hpms_2017.gpkg")
+  if (file.exists(dest_file)) return(dest_file)
   message("downloading HPMS data")
   tf <- tempfile(fileext = ".zip")
   httr::GET(
@@ -38,7 +20,7 @@ get_traffic <- function() {
       "-makevalid",
       "-progress",
       "-select Route_ID,AADT,AADT_SINGL,AADT_COMBI",
-      shQuote(hpms_file_path),
+      shQuote(dest_file),
       grep(".shp$", the_files, value = TRUE),
       "-nlt MULTILINESTRING",
       "National_Arterial2017"
@@ -47,59 +29,80 @@ get_traffic <- function() {
   return(hpms_file_path)
 }
 
-d_aadt <-
-  get_traffic() |>
-  sf::st_read() |>
-  transmute(
-    route_id = Route_ID,
-    s2_geography = as_s2_geography(geom),
-    aadt_total = AADT,
-    aadt_truck = AADT_SINGL + AADT_COMBI
-  ) |>
-  tibble::as_tibble() |>
-  select(-geom)
 
-# subset source data to extent of input data
-# TODO will this cutoff roads 400m outside of extent??
-d_aadt <-
-  d_aadt |>
-  filter(s2_intersects_box(s2_geography,
-    lng1 = min(s2_x(d$s2_geography)),
-    lat1 = min(s2_y(d$s2_geography)),
-    lng2 = max(s2_x(d$s2_geography)),
-    lat2 = max(s2_y(d$s2_geography))
-  ))
-
-d <- d |> mutate(withins = s2_dwithin_matrix(s2_geography, d_aadt$s2_geography, distance = 400))
-
-summarize_traffic <- function(x_withins) {
-  d_aadt[x_withins, ] |>
-    summarize(
-      aadt_m_truck = sum(s2_length(s2_geography) * aadt_truck),
-      aadt_m_nontruck = sum(s2_length(s2_geography) * (aadt_total - aadt_truck))
-    )
+#' get traffic summary data
+#' @param x a vector of s2 cell identifers (`s2_cell` object)
+#' @param buffer distance from s2 cell (in meters) to summarize data
+#' @return a data.frame with one row for each s2 cell in `x` and one numeric column per traffic summaries
+#' @details The `aadt_m_truck` is calculated as the sum of total average
+#' annual daily truck-meters (AADT m) within 400 m of the s2 cell. Similarly,
+#' `aadt_m_nontruck` is calculated by subtracting the summary measure for all
+#' trucks from the summary measure for all traffic.
+get_traffic_summary <- function(x, buffer = 400) {
+  d_aadt <-
+    install_traffic() |>
+    sf::st_read() |>
+    dplyr::transmute(route_id = Route_ID,
+                     s2_geography = s2::as_s2_geography(geom),
+                     aadt_total = AADT,
+                     aadt_truck = AADT_SINGL + AADT_COMBI) |>
+    tibble::as_tibble() |>
+    dplyr::select(-geom)
+  d <-
+    tibble::tibble(s2 = unique(x)) |>
+    dplyr::mutate(s2_geography = s2::as_s2_geography(s2::s2_cell_to_lnglat(s2))) |>
+    dplyr::nest_by(s2_4 = s2::s2_cell_parent(s2, level = 4)) |>
+    dplyr::ungroup()
+  subset_within <- function(chnk, distance = 400) {
+    x_aadt_intersection <- 
+      s2::s2_intersects_box(x = d_aadt$s2_geography,
+                        lng1 = min(s2::s2_x(chnk$s2_geography)),
+                        lat1 = min(s2::s2_y(chnk$s2_geography)),
+                        lng2 = max(s2::s2_x(chnk$s2_geography)),
+                        lat2 = max(s2::s2_y(chnk$s2_geography)))
+    s2::s2_dwithin_matrix(chnk$s2_geography, dplyr::filter(d_aadt, x_aadt_intersection)$s2_geography, distance = distance)
+  }
+  d$withins <- purrr::map(d$data, subset_within, .progress = "intersecting with AADT")
+  d <- d |> tidyr::unnest(cols = c(data, withins))
+  # summarize intersecting data using within integers
+  summarize_traffic <- function(x_withins) {
+    d_aadt[x_withins, ] |>
+      dplyr::summarize(
+        aadt_m_truck = sum(s2::s2_length(s2_geography) * aadt_truck),
+        aadt_m_nontruck = sum(s2::s2_length(s2_geography) * (aadt_total - aadt_truck))
+      )
+  }
+  message("summarizing traffic...")
+  d$aadt <- furrr::future_map(d$withins, summarize_traffic, .progress = TRUE)
+  traffic_summaries <-
+    d |>
+    dplyr::select(s2, aadt) |>
+    tidyr::unnest(cols = c(aadt))
+  output <-
+    tibble::tibble(s2 = x) |>
+    dplyr::left_join(traffic_summaries, by = "s2") |>
+    select(-s2)
+  return(output)
 }
 
-d$aadt <- purrr::map(d$withins, summarize_traffic, .progress = "summarizing traffic")
+library(dplyr, warn.conflicts = FALSE)
+library(fr, warn.conflicts = FALSE)
+library(s2)
+future::plan("multicore", workers = 6)
 
-d <- d |>
-  select(s2, aadt) |>
-  tidyr::unnest(cols = c(aadt))
+rd <- readRDS("data/geocodes.rds")
 
-out <-
-  as_tibble(d)
-
-out <-
+d <-
   tibble::as_tibble(rd) |>
   select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, lat, lon) |>
+  na.omit() |>
   mutate(s2 = as_s2_cell(s2_geog_point(lon, lat))) |>
-  select(-lat, -lon) |>
-  left_join(d, by = "s2") |>
-  select(-s2) |>
-  as_fr_tdr(.template = rd)
+  select(-lat, -lon)
 
-out <- out |>
+d <- dplyr::bind_cols(rd, get_traffic_summary(d$s2))
+
+d |>
+  as_fr_tdr(.template = rd) |>
   update_field("aadt_m_truck", title = "Average Annual Daily Traffic-Meters (Trucks) within 400m") |>
-  update_field("aadt_m_nontruck", title = "Average Annual Daily Traffic-Meters (Non-Trucks) within 400m")
-
-saveRDS(out, "data/traffic.rds")
+  update_field("aadt_m_nontruck", title = "Average Annual Daily Traffic-Meters (Non-Trucks) within 400m") |>
+  saveRDS("data/traffic.rds")
