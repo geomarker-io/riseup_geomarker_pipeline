@@ -1,5 +1,5 @@
 library(dplyr, warn.conflicts = FALSE)
-library(fr)
+library(fr, warn.conflicts = FALSE)
 
 guid <- c("PAT_ENC_CSN_ID", "ADMIT_DATE", "MRN")
 

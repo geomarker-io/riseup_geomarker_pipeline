@@ -11,20 +11,19 @@ description: |-
       a tabular data resource (csv file).
 schema:
   fields:
+    MRN:
+      name: MRN
+      type: string
     PAT_ENC_CSN_ID:
       name: PAT_ENC_CSN_ID
       type: string
-    HOSP_ADMSN_TIME:
-      name: HOSP_ADMSN_TIME
-      type: date
     raw_address:
       name: raw_address
       type: string
-      description: Concatenation of `PAT_ADDR_1`, `PAT_ADDR_2`, `PAT_CITY`, `PAT_STATE`,
-        `PAT_ZIP`
-    PAT_MRN_ID:
-      name: PAT_MRN_ID
-      type: string
+      description: Concatenation of `ADDRESS`, `CITY`, `STATE`, `ZIP`
+    ADMIT_DATE:
+      name: ADMIT_DATE
+      type: date
     address:
       name: address
       type: string
@@ -135,30 +134,29 @@ schema:
         1 hour drive time)
       constraints:
         enum:
-        - '12'
-        - '54'
-        - '> 60'
-        - '36'
         - '24'
-        - '42'
-        - '18'
-        - '48'
-        - '30'
-        - '60'
+        - '12'
+        - '36'
         - '6'
+        - '30'
+        - '42'
+        - '48'
+        - '18'
+        - '54'
+        - '60'
+        - '> 60'
     distance:
       name: distance
       type: number
       title: Distance to CCHMC
       description: distance in meters
-    aadt_m_truck:
-      name: aadt_m_truck
+    total_aadt_m_400:
+      name: total_aadt_m_400
       type: number
-      title: Average Annual Daily Traffic-Meters (Trucks) within 400m
-    aadt_m_nontruck:
-      name: aadt_m_nontruck
+      title: Average Annual Daily Truck and Bus Traffic-Meters
+    truck_aadt_m_400:
+      name: truck_aadt_m_400
       type: number
-      title: Average Annual Daily Traffic-Meters (Non-Trucks) within 400m
     pct_impervious_2019:
       name: pct_impervious_2019
       type: number
