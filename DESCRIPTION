@@ -1,6 +1,6 @@
 Package: riseup_geomarker_pipeline
 Title: riseup_geomarker_pipeline
-Version: 2.0.0
+Version: 2.1.0
 Description: Input addresses from the electronic health record
     are cleaned, geocoded, geomarked, linked to parcel
     data, and linked to daily data. The data output is
@@ -9,12 +9,12 @@ URL: https://github.com/geomarker-io/riseup_geomarker_pipeline
 R.version: 4.3.0
 Imports: 
     cincy (>= 1.0.1),
-    fr,
+    fr (>= 1.0.0),
     dplyr,
     fs,
     glue,
     httr,
-    parcel (>= 0.10.0),
+    parcel (>= 0.10.1),
     purrr,
     readr,
     readxl,

@@ -8,7 +8,7 @@ rd <- readRDS("data/geocodes.rds")
 
 d_vect <-
   tibble::as_tibble(rd) |>
-  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon) |>
+  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, lat, lon) |>
   na.omit() |>
   distinct(.keep_all = TRUE) |>
   st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
@@ -27,8 +27,8 @@ d_vect$evi_750 <- round(terra::extract(impervious_raster, d_vect, fun = "mean", 
 
 out <-
   tibble::as_tibble(rd) |>
-  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID) |>
-  left_join(as_tibble(d_vect), by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID")) |>
+  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN) |>
+  left_join(as_tibble(d_vect), by = c("PAT_ENC_CSN_ID", "ADMIT_DATE", "MRN")) |>
   as_fr_tdr(.template = rd)
 out@name <- "greenness"
 

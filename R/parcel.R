@@ -9,15 +9,15 @@ message(nrow(d), " observations")
 
 d <- d |>
   filter(hamilton_zip_code) |>
-  select(PAT_ENC_CSN_ID, PAT_MRN_ID, HOSP_ADMSN_TIME, address)
+  select(PAT_ENC_CSN_ID, MRN, ADMIT_DATE, address)
 
 message(nrow(d), " observations with hamilton zip code")
 
 d_tract <-
   readRDS("data/census_tract_level_data.rds") |>
   tibble::as_tibble() |>
-  select(PAT_ENC_CSN_ID, PAT_MRN_ID, HOSP_ADMSN_TIME, census_tract_id)
-d <- left_join(d, d_tract, by = c("PAT_ENC_CSN_ID", "PAT_MRN_ID", "HOSP_ADMSN_TIME"))
+  select(PAT_ENC_CSN_ID, MRN, ADMIT_DATE, census_tract_id)
+d <- left_join(d, d_tract, by = c("PAT_ENC_CSN_ID", "MRN", "ADMIT_DATE"))
 
 d <- d |> filter(!is.na(census_tract_id))
 

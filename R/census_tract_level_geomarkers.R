@@ -14,7 +14,7 @@ rd <- readRDS("data/geocodes.rds")
 
 d_in <-
   tibble::as_tibble(rd) |>
-  select(PAT_ENC_CSN_ID, HOSP_ADMSN_TIME, PAT_MRN_ID, lat, lon) |>
+  select(PAT_ENC_CSN_ID, ADMIT_DATE, MRN, lat, lon) |>
   mutate(s2_geography = s2_geog_point(lon, lat))
 
 states <-
@@ -49,7 +49,7 @@ d <-
   tidyr::unnest(cols = c(data, census_tract_id)) |>
   select(-s2_geography, -lat, -lon)
 
-d_out <- left_join(select(d_in, -state, -s2_geography, -lat, -lon), d, by = c("PAT_ENC_CSN_ID", "HOSP_ADMSN_TIME", "PAT_MRN_ID"))
+d_out <- left_join(select(d_in, -state, -s2_geography, -lat, -lon), d, by = c("PAT_ENC_CSN_ID", "ADMIT_DATE", "MRN"))
 
 d_out <- cincy::add_neighborhood(d_out, vintage = "2010")
 

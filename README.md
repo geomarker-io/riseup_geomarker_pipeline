@@ -40,7 +40,7 @@ See the [metadata](data/riseup_geomarker_pipeline/tabular-data-resource.yaml) fo
 
 *Notes:*
 
-- Patient addresses are constructed by pasting together `pat_addr_1`, `pat_city`, `pat_state`, `pat_zip` fields
+- Patient addresses are constructed by pasting together `ADDRESS`, `CITY`, `STATE`, `ZIP` fields
 - `hh_acs_measures` has annual measures, but measures from 2019 are used here
 
 #### Time Data Availability Notes
@@ -54,7 +54,7 @@ See the [metadata](data/riseup_geomarker_pipeline/tabular-data-resource.yaml) fo
 
 ## Running & Developing
 
-1. Clone github repository to destination; manually move input health data into place (`data/HospitalAdmissions.csv`)
+1. Clone github repository to destination; manually move input health data into place (`DR1767_r2.csv`)
 1. Install `pak` (`install.packages("pak", repos = sprintf("https://r-lib.github.io/p/pak/stable/%s/%s/%s", .Platform$pkgType, R.Version()$os, R.Version()$arch))`)
 1. Install all packages from DESCRIPTION file by running `pak::pak()` *or* `remotes::install_deps()` in the project root from R. (If you are on a linux machine, speed up installation to use binaries hosted by Posit, by setting `options("repos" = c("CRAN" = "https://packagemanager.rstudio.com/all/__linux__/jammy/latest"))`, substituting `jammy` for your specific linux version.)
 1. Install required python libraries. (Use `reticulate::py_config()` to check on available python environments):

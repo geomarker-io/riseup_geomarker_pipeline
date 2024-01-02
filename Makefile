@@ -6,7 +6,7 @@ data/riseup_geomarker_pipeline_output/riseup_geomarker_pipeline_output.csv data/
 data/riseup_geomarker_pipeline_output.rds: DESCRIPTION data/cleaned_addresses.rds data/geocodes.rds data/census_tract_level_data.rds data/traffic.rds data/greenness.rds data/drivetime.rds data/nlcd.rds data/parcel.rds data/daily.rds R/join_all.R
 	Rscript R/join_all.R
 
-data/cleaned_addresses.rds: R/import_clean_data.R data/HospitalAdmissions.csv
+data/cleaned_addresses.rds: R/import_clean_data.R data/DR1767_r2.csv
 	Rscript R/import_clean_data.R
 
 data/geocodes.rds: R/geocode.R data/cleaned_addresses.rds
